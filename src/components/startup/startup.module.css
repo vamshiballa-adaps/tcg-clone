@@ -1,0 +1,22 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: auto;
+  background: var(--mantine-color-body);
+}
+
+/* While the startup screen is up it stands in for the whole app. The header, sidebar and main landmark are taken out of
+   the accessibility tree (not just painted over), so the loading screen is the only thing a user or a test can see.
+   The screen is a sibling of the shell, not inside <main>, so it is not caught by this. */
+:global(body):has(.screen) :global(.mantine-AppShell-header),
+:global(body):has(.screen) :global(.mantine-AppShell-navbar),
+:global(body):has(.screen) :global(.mantine-AppShell-main) {
+  visibility: hidden;
+}
+
+/* Next's route announcer is a second, empty role=alert, inside the shadow root of this host element. Nothing navigates
+   while the screen is up, so drop it for that time and the loading alert is the only alert on the page. */
+:global(body):has(.screen) :global(next-route-announcer) {
+  display: none;
+}
