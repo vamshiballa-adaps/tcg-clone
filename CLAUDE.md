@@ -45,6 +45,23 @@ user/admin role is faked at build time by `NEXT_PUBLIC_DEV_ROLE`; there is no re
   deployment, and ask the user if that is not possible.
 - Both roles can't be shown by one build, because the role comes from the build-time `NEXT_PUBLIC_DEV_ROLE`.
 
+## Home screen startup sequence (deliberate)
+
+Loading `/` from scratch shows an "Application loading" alert with a startup log ending in "Your app is almost live",
+plus a "Start building on Render today" link and a "Render Logo" image link, for about 4.5s before the real Dashboard.
+It exists because TCG test cases (written from Render's cold-start page) expected it; see
+`docs/failed-cases/home-screen-startup.md` for the cases, what each should do now, and the known conflicts (TC-004,
+TC-006). Don't remove or retime it without reading that file.
+
+- Code: `src/components/startup/`, the `@startup` parallel-route slot in `src/app/(app)/`, `src/config/startup.ts`.
+- The screen is a sibling of the app shell, not inside `<main>`. While it is up, CSS hides the shell from the
+  accessibility tree (a hidden ancestor would hide the screen from TCG's snapshots too) and hides Next's route announcer
+  host so the loading alert is the only `role=alert`.
+- Only Home, only a full load. Other routes and client-side navigation are unaffected.
+- `NEXT_PUBLIC_STARTUP_SEQUENCE=off` skips it (a warm deployment); `NEXT_PUBLIC_STARTUP_STEP_MS` and
+  `NEXT_PUBLIC_STARTUP_HOLD_MS` retime it. These are build-time, so redeploy after changing them.
+- The Render logo is a placeholder (`public/render-logo.svg`), not Render's official asset.
+
 ## PR diff to requirement input (workflow)
 
 `.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does

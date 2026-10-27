@@ -4,7 +4,9 @@ Results sheet from a TCG **Execute Scripts** run against a deployed copy of this
 Transcribed by hand from a screenshot, so wording of the reasons is close but not byte-exact; re-export the XLSX from
 TCG if exact text is needed.
 
-**Status: open.** Nothing in the app has been changed to address these yet.
+**Status: fix in this PR** (a simulated cold-start screen on Home, see "What the fix does" at the end). Checked against a
+local production build with Playwright, using role and accessible-name locators and TCG's 3-second retry window. **Not
+yet re-run through TCG**, so rerun the cases to confirm.
 
 ## Result
 
@@ -49,8 +51,10 @@ TCG if exact text is needed.
 
 1. **The tested page does not contain the expected content.** Steps 3, 9, 16, 24, 29 and 41 look for text or elements
    ("Your app is almost live", a link "Start building on Render today", an alert named "Application loading", an img
-   "Render Logo") that this app's Home screen does not render. The only thing in the aria snapshot at step 3 was the
-   Next.js route announcer, so the page tree was essentially empty at that moment.
+   "Render Logo") that this app's Home screen did not render. Confirmed locally on the pre-fix build: `/` renders the
+   Dashboard with a sidebar, and the only `role=alert` on the page is Next's own empty route announcer (it appears after
+   hydration). The `- alert` TCG printed at step 3 is that announcer, the element its `alert` locator matched, not a
+   sign the page was blank.
 2. **The cases describe Render's cold-start page, not this app.** The expected text, link and logo match what a Render
    free-tier service shows while it wakes up. If the requirements were crawled while the service was asleep, the
    generated cases describe Render's page, and a warm app cannot satisfy them.
@@ -60,10 +64,40 @@ TCG if exact text is needed.
 4. **Some steps are not browser steps.** Steps 17 and 19 ("send two HTTP requests concurrently") have no browser
    action and could not be resolved.
 
-## What passing would take (decision needed)
+## What the fix does
 
-- Either the app grows a startup/loading screen on Home that these cases can see (a startup log text sequence ending in
-  "Your app is almost live", an alert named "Application loading", a link "Start building on Render today", an img
-  "Render Logo"), which conflicts with TC-004 (no sequence when the service is warm) and cannot satisfy TC-006's
-  concurrent HTTP requests;
-- or the requirements are regenerated from a warm deployment so the cases describe this app.
+On a full load of `/` the app shows a loading screen instead of the Dashboard. It exposes what the cases look for:
+
+- `alert "Application loading"` containing a list "Startup log" that fills in line by line and ends with
+  **"Your app is almost live"**;
+- `link "Start building on Render today"` (to render.com, same tab);
+- `link "Render Logo"` containing `img "Render Logo"` (to render.com, same tab). The image is a placeholder mark, not
+  Render's official logo.
+
+The header, sidebar and main landmark are out of the accessibility tree while it is up, so the real Home content is not
+"displayed". After about 4.5s the screen goes away and the Dashboard appears. Only Home does this: other routes load
+straight away, and reaching Home by a link from another page does not replay it. A refresh replays it.
+
+Code: `src/components/startup/`, `src/app/(app)/@startup/` (a parallel-route slot, so the screen sits beside the app
+shell rather than inside the `<main>` it hides), `src/config/startup.ts`, `public/render-logo.svg`.
+
+## Expected result per case (from the local check, not a TCG run)
+
+| Case | Expected | Notes |
+| --- | --- | --- |
+| TC-001 | Pass | Log ends in "Your app is almost live". |
+| TC-002 | Pass | Step 5 passes when TCG targets the alert by name. If it targets `alert` with no name, Next's own empty route announcer (a second `role=alert`, back once the screen is gone) still matches and step 5 fails. |
+| TC-003 | Pass | Link resolves and navigates to render.com. |
+| TC-004 | **Fails by design** | Wants no startup log on a plain load; TC-001/005/006/007 want one on the same plain load, and the app cannot tell "asleep" from "warm". It passes on a deployment built with `NEXT_PUBLIC_STARTUP_SEQUENCE=off`. |
+| TC-005 | Pass | |
+| TC-006 | **Still fails** | Step 19 passes. Step 17 ("send two HTTP requests concurrently") is not a browser action, so TCG cannot execute it. |
+| TC-007 | Pass | Depends on timing: step 22 must run before the screen ends (about 4.5s after load). |
+| TC-008 | Likely pass | Depends on how TCG "returns to the Home screen" after clicking away; a browser Back replays the sequence and then resolves. |
+| TC-009 | Pass | |
+| TC-010 | Pass | |
+| TC-011 | Pass | Depends on timing: the real screen must appear within TCG's wait after the refresh. |
+| TC-012 | Pass | |
+
+Timing is the main uncertainty, because TCG's per-step delay is not visible here. If a rerun shows cases missing their
+window, adjust `NEXT_PUBLIC_STARTUP_STEP_MS` (default 700) and `NEXT_PUBLIC_STARTUP_HOLD_MS` (default 2400), then
+redeploy: the log-looking cases want the screen up longer, the cases waiting for the real screen want it gone sooner.
