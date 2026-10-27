@@ -67,6 +67,9 @@ merged changes can filter on it (or delete the `pull_request:` trigger from the 
 whatever ingests requirements (e.g. the Inputs Registry API once it exists) and the branch/artifact keep working as a
 fallback.
 
+> Smoke test: this line was added in a throwaway PR to check that the workflow runs when a change is merged to
+> `main`. Safe to delete.
+
 ## Not included yet (by design)
 
 Auth/session, real RBAC capabilities, API integration, data fetching/state library, tests, build/lint CI, and the platform
