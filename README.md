@@ -42,7 +42,23 @@ already work.
 3. Set `status` to `"in-progress"`, then `"done"` when merged.
 4. Need a new screen? Add it to `routes.ts` **and** create its `page.tsx`.
 
+## PR diff → requirement input
+
+[`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) runs on every PR
+(opened, reopened, new commits, ready for review). It records what the PR changes (description, file table, diff;
+lockfile diffs omitted, diff capped at 400k chars) via
+[`.github/scripts/build-requirement-input.mjs`](./.github/scripts/build-requirement-input.mjs) and delivers it to:
+
+| Destination | When | Where |
+| --- | --- | --- |
+| Workflow artifact | always | `requirement-input-pr-<n>` on the run (30 days) |
+| `requirements-inbox` branch | PRs from this repo (forks get a read-only token) | `pr-<n>/requirement-input.md` and `.json`, overwritten on each push to the PR |
+| Webhook | repo secret `REQUIREMENTS_WEBHOOK_URL` is set | `POST` of the `.json` body; optional `REQUIREMENTS_WEBHOOK_TOKEN` is sent as `Authorization: Bearer` |
+
+The `.json` shape is `{ source, description, stats, files[], diff, diff_truncated }`. Point the webhook at whatever
+ingests requirements (e.g. the Inputs Registry API once it exists) and the branch/artifact keep working as a fallback.
+
 ## Not included yet (by design)
 
-Auth/session, real RBAC capabilities, API integration, data fetching/state library, tests, CI, and the platform
+Auth/session, real RBAC capabilities, API integration, data fetching/state library, tests, build/lint CI, and the platform
 `/admin` surface (P-xx). Add these as their features come up.

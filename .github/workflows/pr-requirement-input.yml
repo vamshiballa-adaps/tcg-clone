@@ -1,0 +1,112 @@
+name: PR diff → requirement input
+
+# Whenever a PR is raised (or updated), record what it changes and hand it to the requirement input:
+#   1. always: a workflow artifact + job summary
+#   2. same-repo PRs: committed to the `requirements-inbox` branch under pr-<number>/
+#   3. optional: POSTed to REQUIREMENTS_WEBHOOK_URL (repo secret) if set
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: write # push to the requirements-inbox branch
+
+concurrency:
+  group: requirement-input-${{ github.event.pull_request.number }}
+  cancel-in-progress: true # a newer push to the PR supersedes the older run
+
+env:
+  INBOX_BRANCH: requirements-inbox
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REQUIREMENTS_WEBHOOK_URL: ${{ secrets.REQUIREMENTS_WEBHOOK_URL }}
+      REQUIREMENTS_WEBHOOK_TOKEN: ${{ secrets.REQUIREMENTS_WEBHOOK_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the three-dot diff needs the merge base
+          persist-credentials: false
+
+      - name: Build requirement input from PR diff
+        run: node .github/scripts/build-requirement-input.mjs
+        env:
+          OUT_DIR: ${{ runner.temp }}/requirement-input
+
+      - name: Upload as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: requirement-input-pr-${{ github.event.pull_request.number }}
+          path: ${{ runner.temp }}/requirement-input/
+          retention-days: 30
+
+      - name: Job summary
+        run: |
+          {
+            echo "### Requirement input recorded for PR #${{ github.event.pull_request.number }}"
+            echo
+            echo "- Branch \`$INBOX_BRANCH\`, folder \`pr-${{ github.event.pull_request.number }}/\` (same-repo PRs only)"
+            echo "- Artifact \`requirement-input-pr-${{ github.event.pull_request.number }}\`"
+            [ -n "$REQUIREMENTS_WEBHOOK_URL" ] && echo "- Webhook delivery attempted"
+            true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Fork PRs only get a read-only token, so they skip the branch push (artifact still uploaded).
+      - name: Publish to requirements-inbox branch
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SRC_DIR: ${{ runner.temp }}/requirement-input
+        run: |
+          set -euo pipefail
+          inbox="$RUNNER_TEMP/inbox"
+          git init -q "$inbox"
+          cd "$inbox"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            if git fetch -q --depth 1 origin "$INBOX_BRANCH"; then
+              git checkout -q -B "$INBOX_BRANCH" FETCH_HEAD
+            else
+              git checkout -q --orphan "$INBOX_BRANCH"
+              git rm -rfq . 2>/dev/null || true
+            fi
+
+            mkdir -p "pr-${PR_NUMBER}"
+            cp "$SRC_DIR/requirement-input.md" "$SRC_DIR/requirement-input.json" "pr-${PR_NUMBER}/"
+            git add -A
+
+            if git diff --cached --quiet; then
+              echo "No change to pr-${PR_NUMBER}; nothing to publish."
+              exit 0
+            fi
+
+            git commit -q -m "requirement input: PR #${PR_NUMBER} @ ${HEAD_SHA:0:12}"
+            if git push -q origin "HEAD:refs/heads/${INBOX_BRANCH}"; then
+              echo "Published pr-${PR_NUMBER} to ${INBOX_BRANCH}."
+              exit 0
+            fi
+            echo "Push raced with another PR (attempt ${attempt}); retrying."
+            sleep $((attempt * 2))
+            rm -rf "pr-${PR_NUMBER}"
+          done
+          echo "Could not publish after retries." >&2
+          exit 1
+
+      - name: Send to webhook
+        if: env.REQUIREMENTS_WEBHOOK_URL != ''
+        run: |
+          set -euo pipefail
+          args=(-sS --fail-with-body --max-time 30 --retry 3 -X POST -H "Content-Type: application/json")
+          if [ -n "$REQUIREMENTS_WEBHOOK_TOKEN" ]; then
+            args+=(-H "Authorization: Bearer $REQUIREMENTS_WEBHOOK_TOKEN")
+          fi
+          curl "${args[@]}" --data-binary @"$RUNNER_TEMP/requirement-input/requirement-input.json" \
+            "$REQUIREMENTS_WEBHOOK_URL"
