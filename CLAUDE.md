@@ -47,17 +47,26 @@ user/admin role is faked at build time by `NEXT_PUBLIC_DEV_ROLE`; there is no re
 
 ## PR diff to requirement input (workflow)
 
-`.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` run on every PR (opened,
-reopened, synchronize, ready_for_review). They record the PR's description, file table and diff (lockfile diffs omitted,
-capped at 400k chars) as `requirement-input.md` and `.json`, delivered to:
+`.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does
+(description, file table and diff; lockfile diffs omitted, capped at 400k chars) as `requirement-input.md` and `.json`.
+They run when:
+
+- **anything lands on `main`** (a merged PR by any method, or a direct push): the push's diff, commit list and, when
+  GitHub can name it, the PR behind it, in `merged/<sha12>/`. This is the record that matters; the requirement is the
+  change that actually landed. `source.merged` is `true` in its JSON.
+- a **PR is opened or updated** (opened, reopened, synchronize, ready_for_review): the PR's own diff in `pr-<n>/`, a
+  draft that may never land (`source.merged` is `false`). Delete the `pull_request:` trigger to record merges only.
+
+Each record is delivered to:
 
 - a workflow artifact (always),
-- the `requirements-inbox` branch under `pr-<n>/` (same-repo PRs only; forks get a read-only token),
+- the `requirements-inbox` branch (pushes, and same-repo PRs; fork PRs get a read-only token),
 - a POST to the `REQUIREMENTS_WEBHOOK_URL` secret, if set (optional `REQUIREMENTS_WEBHOOK_TOKEN` as a bearer token).
 
-**Status (2026-10-27):** written and tested locally only (script, edge cases, branch-publish logic against a local bare
-repo). It has not yet run on GitHub. The artifact and the `requirements-inbox` branch are the safe delivery paths; do
-not rely on the webhook landing anywhere yet. Details are in `README.md`.
+**Status (2026-10-27):** written and tested locally only (script for both event kinds including the PR lookup against
+a mock API, and the branch-publish logic against a local bare repo). It has not yet run on GitHub. The artifact and the
+`requirements-inbox` branch are the safe delivery paths; do not rely on the webhook landing anywhere yet. Details are
+in `README.md`.
 
 ## Open questions (close these when answered, then delete them here)
 

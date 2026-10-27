@@ -1,19 +1,26 @@
-name: PR diff → requirement input
+name: PR / merge diff → requirement input
 
-# Whenever a PR is raised (or updated), record what it changes and hand it to the requirement input:
+# Records what a change does and hands it to the requirement input:
+#   - a PR is opened or updated            -> pr-<number>/
+#   - anything lands on main (merged PR, squash/rebase merge, direct push) -> merged/<sha12>/
+# Each record is delivered to:
 #   1. always: a workflow artifact + job summary
-#   2. same-repo PRs: committed to the `requirements-inbox` branch under pr-<number>/
+#   2. same-repo PRs and pushes: committed to the `requirements-inbox` branch
 #   3. optional: POSTed to REQUIREMENTS_WEBHOOK_URL (repo secret) if set
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
 
 permissions:
   contents: write # push to the requirements-inbox branch
+  pull-requests: read # find the PR behind a merge commit
 
 concurrency:
-  group: requirement-input-${{ github.event.pull_request.number }}
-  cancel-in-progress: true # a newer push to the PR supersedes the older run
+  group: requirement-input-${{ github.event.pull_request.number || github.sha }}
+  # A newer push to a PR supersedes the older run; never cancel a merge record.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   INBOX_BRANCH: requirements-inbox
@@ -28,39 +35,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # the three-dot diff needs the merge base
+          fetch-depth: 0 # the diff needs the merge base / the pushed range
           persist-credentials: false
 
-      - name: Build requirement input from PR diff
+      - name: Build requirement input from the diff
+        id: build
         run: node .github/scripts/build-requirement-input.mjs
         env:
           OUT_DIR: ${{ runner.temp }}/requirement-input
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: requirement-input-pr-${{ github.event.pull_request.number }}
+          name: requirement-input-${{ steps.build.outputs.slug }}
           path: ${{ runner.temp }}/requirement-input/
           retention-days: 30
 
       - name: Job summary
         run: |
           {
-            echo "### Requirement input recorded for PR #${{ github.event.pull_request.number }}"
+            echo "### Requirement input recorded: ${{ steps.build.outputs.slug }}"
             echo
-            echo "- Branch \`$INBOX_BRANCH\`, folder \`pr-${{ github.event.pull_request.number }}/\` (same-repo PRs only)"
-            echo "- Artifact \`requirement-input-pr-${{ github.event.pull_request.number }}\`"
+            echo "- Branch \`$INBOX_BRANCH\`, folder \`${{ steps.build.outputs.folder }}/\` (same-repo PRs and pushes only)"
+            echo "- Artifact \`requirement-input-${{ steps.build.outputs.slug }}\`"
             [ -n "$REQUIREMENTS_WEBHOOK_URL" ] && echo "- Webhook delivery attempted"
             true
           } >> "$GITHUB_STEP_SUMMARY"
 
       # Fork PRs only get a read-only token, so they skip the branch push (artifact still uploaded).
       - name: Publish to requirements-inbox branch
-        if: github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          FOLDER: ${{ steps.build.outputs.folder }}
+          SLUG: ${{ steps.build.outputs.slug }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           SRC_DIR: ${{ runner.temp }}/requirement-input
         run: |
           set -euo pipefail
@@ -79,23 +89,23 @@ jobs:
               git rm -rfq . 2>/dev/null || true
             fi
 
-            mkdir -p "pr-${PR_NUMBER}"
-            cp "$SRC_DIR/requirement-input.md" "$SRC_DIR/requirement-input.json" "pr-${PR_NUMBER}/"
+            mkdir -p "$FOLDER"
+            cp "$SRC_DIR/requirement-input.md" "$SRC_DIR/requirement-input.json" "$FOLDER/"
             git add -A
 
             if git diff --cached --quiet; then
-              echo "No change to pr-${PR_NUMBER}; nothing to publish."
+              echo "No change to ${FOLDER}; nothing to publish."
               exit 0
             fi
 
-            git commit -q -m "requirement input: PR #${PR_NUMBER} @ ${HEAD_SHA:0:12}"
+            git commit -q -m "requirement input: ${SLUG} @ ${HEAD_SHA:0:12}"
             if git push -q origin "HEAD:refs/heads/${INBOX_BRANCH}"; then
-              echo "Published pr-${PR_NUMBER} to ${INBOX_BRANCH}."
+              echo "Published ${FOLDER} to ${INBOX_BRANCH}."
               exit 0
             fi
-            echo "Push raced with another PR (attempt ${attempt}); retrying."
+            echo "Push raced with another run (attempt ${attempt}); retrying."
             sleep $((attempt * 2))
-            rm -rf "pr-${PR_NUMBER}"
+            rm -rf "$FOLDER"
           done
           echo "Could not publish after retries." >&2
           exit 1

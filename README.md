@@ -44,19 +44,28 @@ already work.
 
 ## PR diff → requirement input
 
-[`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) runs on every PR
-(opened, reopened, new commits, ready for review). It records what the PR changes (description, file table, diff;
-lockfile diffs omitted, diff capped at 400k chars) via
-[`.github/scripts/build-requirement-input.mjs`](./.github/scripts/build-requirement-input.mjs) and delivers it to:
+[`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does
+(description, file table, diff; lockfile diffs omitted, diff capped at 400k chars) via
+[`.github/scripts/build-requirement-input.mjs`](./.github/scripts/build-requirement-input.mjs). It runs in two cases:
+
+| Trigger | Diff recorded | Folder |
+| --- | --- | --- |
+| PR opened, reopened, new commits, ready for review | the PR's own diff (merge base...head) | `pr-<n>/`, overwritten on each push to the PR |
+| **Anything lands on `main`**: merged PR (merge, squash or rebase) or a direct push | the push's diff (before..after), with the commit list and, when GitHub can name it, the PR behind it | `merged/<sha12>/`, one per push, never overwritten |
+
+Each record is delivered to:
 
 | Destination | When | Where |
 | --- | --- | --- |
-| Workflow artifact | always | `requirement-input-pr-<n>` on the run (30 days) |
-| `requirements-inbox` branch | PRs from this repo (forks get a read-only token) | `pr-<n>/requirement-input.md` and `.json`, overwritten on each push to the PR |
+| Workflow artifact | always | `requirement-input-pr-<n>` or `requirement-input-merged-<sha12>` on the run (30 days) |
+| `requirements-inbox` branch | pushes, and PRs from this repo (fork PRs get a read-only token) | the folder above, as `requirement-input.md` and `.json` |
 | Webhook | repo secret `REQUIREMENTS_WEBHOOK_URL` is set | `POST` of the `.json` body; optional `REQUIREMENTS_WEBHOOK_TOKEN` is sent as `Authorization: Bearer` |
 
-The `.json` shape is `{ source, description, stats, files[], diff, diff_truncated }`. Point the webhook at whatever
-ingests requirements (e.g. the Inputs Registry API once it exists) and the branch/artifact keep working as a fallback.
+The `.json` shape is `{ source, description, stats, commits[], files[], diff, diff_truncated }`. `source.merged` is
+`true` for a record made when a change landed on `main` and `false` for a PR-time draft, so a consumer that only wants
+merged changes can filter on it (or delete the `pull_request:` trigger from the workflow). Point the webhook at
+whatever ingests requirements (e.g. the Inputs Registry API once it exists) and the branch/artifact keep working as a
+fallback.
 
 ## Not included yet (by design)
 
