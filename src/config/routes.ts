@@ -275,9 +275,25 @@ export const ROUTES: RouteDef[] = [
     roles: "all",
     status: "todo",
   },
+  {
+    path: "/access-denied",
+    title: "Access denied",
+    description: "Shown, at the address that was asked for, when a signed-in role cannot open that page.",
+    features: ["S-02"],
+    roles: "all",
+    status: "done",
+  },
 
   // ---- Auth (S-01) ----
-  { path: "/login", title: "Sign in", description: "Login flow.", features: ["S-01"], roles: "all", status: "todo" },
+  {
+    path: "/login",
+    title: "Sign in",
+    description:
+      "Email and password against the built-in demo accounts (mock; no backend yet). A signed-in person always lands on the Dashboard.",
+    features: ["S-01"],
+    roles: "all",
+    status: "in-progress",
+  },
   { path: "/signup", title: "Sign up", description: "Signup flow.", features: ["S-01"], roles: "all", status: "todo" },
   {
     path: "/forgot-password",
