@@ -24,10 +24,11 @@ npm run dev                  # http://localhost:3000
 | `src/config/routes.ts` | **Screen registry.** Every screen from the catalogue: path, title, feature IDs (U-xx / A-xx / S-xx), min role, status, pipeline stage, sidebar entry. |
 | `src/config/pipeline.ts` | The 7 pipeline stages. |
 | `src/app/(app)/…` | Authenticated screens inside the app shell (sidebar: My Work / My Insights / My Organization). |
-| `src/app/(auth)/…` | Login, signup, forgot/reset/set password (no shell). |
-| `src/components/shell/` | App shell, sidebar (filtered by role), theme toggle. |
+| `src/app/(auth)/…` | Login, signup, forgot/reset/set password (no shell). Only login is built (mock). |
+| `src/app/api/auth/…`, `src/lib/auth/`, `src/proxy.ts` | Mock sign-in: login/logout/session endpoints, the signed session cookie, route gating. See "Sign in (mock auth)". |
+| `src/components/shell/` | App shell, sidebar (filtered by role), theme toggle, who's signed in. |
 | `src/components/PagePlaceholder.tsx` | Temporary page body listing the catalogue features still to build. |
-| `src/lib/role.ts` | Tenant roles + `canAccess`. `NEXT_PUBLIC_DEV_ROLE=admin\|user` fakes the role until real auth (S-01) lands. |
+| `src/lib/role.ts` | Tenant roles + `canAccess`. Signed out, `NEXT_PUBLIC_DEV_ROLE=admin\|user` is the role; signed in, the account's role wins. |
 | `src/lib/api/client.ts` | Fetch wrapper for the Go BFF (`NEXT_PUBLIC_API_BASE_URL`). |
 | `src/theme.ts` | Mantine theme. Both light and dark must work. |
 
@@ -41,6 +42,30 @@ already work.
    `src/features/<area>/` (create it as needed).
 3. Set `status` to `"in-progress"`, then `"done"` when merged.
 4. Need a new screen? Add it to `routes.ts` **and** create its `page.tsx`.
+
+## Sign in (mock auth)
+
+`/login` signs in against three built-in accounts (S-01). There is no backend or user store yet, so this stands in for
+the Go BFF's signed session cookie.
+
+| Account | Email | Password | Result |
+| --- | --- | --- | --- |
+| Admin | `admin@tcg.test` | `Admin#123` | Signs in as admin |
+| User | `user@tcg.test` | `User#1234` | Signs in as user (no Administration, Integrations, CI/CD Automation) |
+| Locked | `locked@tcg.test` | `Locked#123` | Refused: "This account is locked. Contact your workspace admin." |
+
+Other outcomes: "Enter your email address.", "Enter a valid email address.", "Enter your password.", and "Invalid email
+or password." for a wrong password or unknown email. A successful sign-in always lands on the Dashboard (A-24). The
+header then shows the person's name, role and **Sign out**; the sidebar follows their role.
+
+- **Session:** a signed, httpOnly cookie (`tcg_session`, 8 hours). The UI asks `/api/auth/session`; pages and layouts
+  never read the cookie, so they stay prerendered.
+- **Gating (`src/proxy.ts`):** a signed-in role too low for a page sees "Access denied" at that URL (status 200); a
+  signed-in person opening `/login` goes to the Dashboard.
+- **Settings** (`.env.example`): `AUTH_REQUIRED=true` redirects signed-out visitors to `/login`. It is a runtime setting
+  (no rebuild) and off by default, so the app stays open. `AUTH_SECRET` signs the cookie; set a long random value on
+  any deployed copy.
+- **Not secure:** the passwords are printed on the sign-in screen. Don't put real data behind it.
 
 ## PR diff → requirement input
 
@@ -67,10 +92,8 @@ merged changes can filter on it (or delete the `pull_request:` trigger from the 
 whatever ingests requirements (e.g. the Inputs Registry API once it exists) and the branch/artifact keep working as a
 fallback.
 
-> Smoke test: this line was added in a throwaway PR to check that the workflow runs when a change is merged to
-> `main`. Safe to delete.
-
 ## Not included yet (by design)
 
-Auth/session, real RBAC capabilities, API integration, data fetching/state library, tests, build/lint CI, and the platform
+Real auth/session (a user store, signup and password flows, the BFF's session cookie; sign-in above is a mock), real
+RBAC capabilities, API integration, data fetching/state library, tests, build/lint CI, and the platform
 `/admin` surface (P-xx). Add these as their features come up.

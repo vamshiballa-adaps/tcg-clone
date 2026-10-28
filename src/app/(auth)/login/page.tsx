@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { LoginForm } from "@/components/auth/LoginForm";
+
+export const metadata: Metadata = { title: "Sign in" };
 
 export default function Page() {
-  return <PagePlaceholder route="/login" />;
+  return <LoginForm />;
 }

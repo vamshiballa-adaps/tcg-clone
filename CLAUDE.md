@@ -8,8 +8,9 @@ point of the repo is to exercise and improve TCG's crawl, script-generation, scr
 The TCG backend (Go orchestration, Python core, the real AI Hub frontend) lives in a separate repo, `aihub`
 (`c:\Users\ChinthalapudiBhargav\aihub`). Work in this repo is front-end only; do not edit `aihub` from here.
 
-Today the pages are still `PagePlaceholder`s built from `TCG_BRD_Feature_Catalogue.md` (see `README.md` for layout). The
-user/admin role is faked at build time by `NEXT_PUBLIC_DEV_ROLE`; there is no real auth yet (S-01).
+Today most pages are still `PagePlaceholder`s built from `TCG_BRD_Feature_Catalogue.md` (see `README.md` for layout).
+Sign-in is a mock with built-in accounts (see "Sign in" below); signed out, the role is the build-time
+`NEXT_PUBLIC_DEV_ROLE`.
 
 ## How each TCG feature touches this app
 
@@ -43,7 +44,8 @@ user/admin role is faked at build time by `NEXT_PUBLIC_DEV_ROLE`; there is no re
 - **Reachability.** TCG's crawler and Execute Scripts block private, loopback and link-local addresses (an SSRF guard,
   with a `CRAWL_ALLOWED_HOSTS` allowlist). Do not assume `localhost` or LAN URLs work; plan on a publicly reachable
   deployment, and ask the user if that is not possible.
-- Both roles can't be shown by one build, because the role comes from the build-time `NEXT_PUBLIC_DEV_ROLE`.
+- Signed in, the role comes from the account (`admin@tcg.test` or `user@tcg.test`), so one deployment shows both roles.
+  Signed out it is the build-time `NEXT_PUBLIC_DEV_ROLE`.
 
 ## Home screen startup sequence (deliberate)
 
@@ -61,6 +63,45 @@ TC-006). Don't remove or retime it without reading that file.
 - `NEXT_PUBLIC_STARTUP_SEQUENCE=off` skips it (a warm deployment); `NEXT_PUBLIC_STARTUP_STEP_MS` and
   `NEXT_PUBLIC_STARTUP_HOLD_MS` retime it. These are build-time, so redeploy after changing them.
 - The Render logo is a placeholder (`public/render-logo.svg`), not Render's official asset.
+
+## Sign in (mock auth)
+
+`/login` is a real flow against three built-in accounts. There is no backend or user store, so this stands in for the Go
+BFF's signed session cookie (S-01). The accounts are printed on the sign-in screen and live in `src/config/demo-users.ts`.
+
+| Account | Email | Password | What happens |
+| --- | --- | --- | --- |
+| Admin | `admin@tcg.test` | `Admin#123` | Signs in as admin: full sidebar |
+| User | `user@tcg.test` | `User#1234` | Signs in as user: no Administration, Integrations or CI/CD Automation |
+| Locked | `locked@tcg.test` | `Locked#123` | Refused, even with the right password |
+
+Fields are labelled "Email" and "Password"; the button is "Sign in". Exact messages (an alert titled "Can't sign in" for
+the last three, field errors under the inputs for the first three):
+
+- empty email: "Enter your email address."; malformed: "Enter a valid email address."; empty password: "Enter your password."
+- wrong password or unknown email: "Invalid email or password." (the same text for both)
+- locked account with the right password: "This account is locked. Contact your workspace admin." (a wrong password on it
+  gives the generic message above)
+
+Behaviour a test can rely on:
+
+- A successful sign-in always lands on the Dashboard (A-24), by a full page load, so the Home startup screen plays first.
+- The header then shows the person's name, a role badge and a "Sign out" button; signed out it shows a "Sign in" link.
+  "Sign out" goes to `/login`. Email matching ignores case and surrounding spaces.
+- A signed-in person opening `/login` is sent to the Dashboard.
+- A role too low for a page gets an "Access denied" page at that same URL (status 200, because a proxy rewrite cannot
+  set one). Admin-only: `/administration`, `/integrations`, `/cicd-automation`.
+- By default the app is open when signed out. `AUTH_REQUIRED=true` (a runtime setting on the host, no rebuild) sends
+  signed-out visitors to `/login` instead; the auth screens, `/api/auth/*` and static assets stay open. Turning it on
+  makes any test that reaches a page without signing in first land on `/login`, so run Execute Scripts with
+  credentials.
+
+Code: `src/app/(auth)/login/`, `src/components/auth/`, `src/app/api/auth/{login,logout,session}/route.ts`,
+`src/lib/auth/`, and `src/proxy.ts` (route gating). Pages and layouts never read the cookie: that would make them
+dynamic and the Home startup screen would stop being prerendered, so the UI asks `/api/auth/session` after load.
+
+Not secure by design: the passwords are public, and the session cookie is signed with `AUTH_SECRET` (a public default
+if unset). Never put real data behind it.
 
 ## PR diff to requirement input (workflow)
 
