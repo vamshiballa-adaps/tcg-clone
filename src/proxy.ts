@@ -7,12 +7,13 @@ import { canAccess } from "@/lib/role";
 // never do, so they stay prerendered.
 //
 //   - signed in, opening /login          -> Dashboard
-//   - signed out, AUTH_REQUIRED=true     -> /login (the auth screens themselves stay open)
+//   - signed out                         -> /login (the auth screens themselves stay open)
 //   - signed in, role too low for a page -> the "Access denied" page, served at the same URL. The status stays 200: a
 //     proxy rewrite cannot set one, and Next's forbidden() (which can) is still experimental.
 //
-// AUTH_REQUIRED is read on every request, so it is a runtime setting: change it on the host, no rebuild. It is off by
-// default, so a signed-out visitor still gets the app (with the role from NEXT_PUBLIC_DEV_ROLE).
+// Signing in is mandatory by default. AUTH_REQUIRED=false opens the app to signed-out visitors instead (with the role
+// from NEXT_PUBLIC_DEV_ROLE). It is read on every request, so it is a runtime setting: change it on the host, no
+// rebuild. Only the exact value "false" opens the app; unset or anything else keeps sign-in mandatory.
 
 // "/projects/[id]" -> /^\/projects\/[^/]+\/?$/
 const PATTERNS = ROUTES.map((route) => ({
@@ -29,7 +30,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (!session) {
-    const authRequired = process.env.AUTH_REQUIRED === "true";
+    const authRequired = process.env.AUTH_REQUIRED !== "false";
     if (authRequired && !AUTH_PATHS.includes(pathname)) return redirectTo(request, "/login");
     return NextResponse.next();
   }

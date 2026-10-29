@@ -9,8 +9,8 @@ The TCG backend (Go orchestration, Python core, the real AI Hub frontend) lives 
 (`c:\Users\ChinthalapudiBhargav\aihub`). Work in this repo is front-end only; do not edit `aihub` from here.
 
 Today most pages are still `PagePlaceholder`s built from `TCG_BRD_Feature_Catalogue.md` (see `README.md` for layout).
-Sign-in is a mock with built-in accounts (see "Sign in" below); signed out, the role is the build-time
-`NEXT_PUBLIC_DEV_ROLE`.
+Sign-in is a mock with built-in accounts and is mandatory: the first screen a visitor sees is `/login` (see "Sign in"
+below).
 
 ## How each TCG feature touches this app
 
@@ -44,8 +44,9 @@ Sign-in is a mock with built-in accounts (see "Sign in" below); signed out, the 
 - **Reachability.** TCG's crawler and Execute Scripts block private, loopback and link-local addresses (an SSRF guard,
   with a `CRAWL_ALLOWED_HOSTS` allowlist). Do not assume `localhost` or LAN URLs work; plan on a publicly reachable
   deployment, and ask the user if that is not possible.
-- Signed in, the role comes from the account (`admin@tcg.test` or `user@tcg.test`), so one deployment shows both roles.
-  Signed out it is the build-time `NEXT_PUBLIC_DEV_ROLE`.
+- Signing in is mandatory, and the role comes from the account (`admin@tcg.test` or `user@tcg.test`), so one deployment
+  shows both roles. Every test must start with a login. Only with `AUTH_REQUIRED=false` can a signed-out visitor in, with
+  the build-time `NEXT_PUBLIC_DEV_ROLE`.
 
 ## Home screen startup sequence (deliberate)
 
@@ -59,7 +60,9 @@ TC-006). Don't remove or retime it without reading that file.
 - The screen is a sibling of the app shell, not inside `<main>`. While it is up, CSS hides the shell from the
   accessibility tree (a hidden ancestor would hide the screen from TCG's snapshots too) and hides Next's route announcer
   host so the loading alert is the only `role=alert`.
-- Only Home, only a full load. Other routes and client-side navigation are unaffected.
+- Only Home, only a full load. Other routes and client-side navigation are unaffected. Sign-in is mandatory, so a
+  signed-out visit to `/` goes to `/login` first; the sequence plays on the full load of `/` that follows a sign-in (or on
+  a plain load of `/` when signed in already, or when the deployment has `AUTH_REQUIRED=false`).
 - `NEXT_PUBLIC_STARTUP_SEQUENCE=off` skips it (a warm deployment); `NEXT_PUBLIC_STARTUP_STEP_MS` and
   `NEXT_PUBLIC_STARTUP_HOLD_MS` retime it. These are build-time, so redeploy after changing them.
 - The Render logo is a placeholder (`public/render-logo.svg`), not Render's official asset.
@@ -86,15 +89,21 @@ the last three, field errors under the inputs for the first three):
 Behaviour a test can rely on:
 
 - A successful sign-in always lands on the Dashboard (A-24), by a full page load, so the Home startup screen plays first.
-- The header then shows the person's name, a role badge and a "Sign out" button; signed out it shows a "Sign in" link.
-  "Sign out" goes to `/login`. Email matching ignores case and surrounding spaces.
+- The header then shows the person's name, a role badge and a "Sign out" button. "Sign out" goes to `/login`. Email
+  matching ignores case and surrounding spaces. (The header's "Sign in" link only shows when `AUTH_REQUIRED=false` lets a
+  signed-out visitor see the shell.)
 - A signed-in person opening `/login` is sent to the Dashboard.
 - A role too low for a page gets an "Access denied" page at that same URL (status 200, because a proxy rewrite cannot
   set one). Admin-only: `/administration`, `/integrations`, `/cicd-automation`.
-- By default the app is open when signed out. `AUTH_REQUIRED=true` (a runtime setting on the host, no rebuild) sends
-  signed-out visitors to `/login` instead; the auth screens, `/api/auth/*` and static assets stay open. Turning it on
-  makes any test that reaches a page without signing in first land on `/login`, so run Execute Scripts with
-  credentials.
+- **Signing in is mandatory.** A signed-out visitor who opens any page (including `/`) is redirected to `/login`; the
+  auth screens (`/login`, `/signup`, `/forgot-password`, `/reset-password`, `/set-password`), `/api/auth/*` and static
+  assets stay open. So a crawl or test that reaches a page without signing in first lands on `/login`: run Execute
+  Scripts, and the crawl's optional login, with credentials. The Home startup cases in
+  `docs/failed-cases/home-screen-startup.md` now begin after a sign-in (the sign-in is a full load of `/`, so the
+  startup screen still plays).
+- `AUTH_REQUIRED=false` (a runtime setting on the host, no rebuild) reverts to an open app for signed-out visitors, who
+  get the build-time `NEXT_PUBLIC_DEV_ROLE`. Only the exact value `false` does that; unset or anything else keeps
+  sign-in mandatory.
 
 Code: `src/app/(auth)/login/`, `src/components/auth/`, `src/app/api/auth/{login,logout,session}/route.ts`,
 `src/lib/auth/`, and `src/proxy.ts` (route gating). Pages and layouts never read the cookie: that would make them
