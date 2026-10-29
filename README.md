@@ -28,7 +28,7 @@ npm run dev                  # http://localhost:3000
 | `src/app/api/auth/…`, `src/lib/auth/`, `src/proxy.ts` | Mock sign-in: login/logout/session endpoints, the signed session cookie, route gating. See "Sign in (mock auth)". |
 | `src/components/shell/` | App shell, sidebar (filtered by role), theme toggle, who's signed in. |
 | `src/components/PagePlaceholder.tsx` | Temporary page body listing the catalogue features still to build. |
-| `src/lib/role.ts` | Tenant roles + `canAccess`. Signed out, `NEXT_PUBLIC_DEV_ROLE=admin\|user` is the role; signed in, the account's role wins. |
+| `src/lib/role.ts` | Tenant roles + `canAccess`. Signed in, the account's role wins; `NEXT_PUBLIC_DEV_ROLE=admin\|user` only applies when `AUTH_REQUIRED=false` lets a signed-out visitor in. |
 | `src/lib/api/client.ts` | Fetch wrapper for the Go BFF (`NEXT_PUBLIC_API_BASE_URL`). |
 | `src/theme.ts` | Mantine theme. Both light and dark must work. |
 
@@ -54,6 +54,10 @@ the Go BFF's signed session cookie.
 | User | `user@tcg.test` | `User#1234` | Signs in as user (no Administration, Integrations, CI/CD Automation) |
 | Locked | `locked@tcg.test` | `Locked#123` | Refused: "This account is locked. Contact your workspace admin." |
 
+**Signing in is mandatory:** a signed-out visitor who opens any page is sent to `/login` first, and only a successful
+sign-in gets them into the app. Only the auth screens (`/login`, `/signup`, `/forgot-password`, `/reset-password`,
+`/set-password`), `/api/auth/*` and static assets are open signed out.
+
 Other outcomes: "Enter your email address.", "Enter a valid email address.", "Enter your password.", and "Invalid email
 or password." for a wrong password or unknown email. A successful sign-in always lands on the Dashboard (A-24). The
 header then shows the person's name, role and **Sign out**; the sidebar follows their role.
@@ -62,9 +66,9 @@ header then shows the person's name, role and **Sign out**; the sidebar follows 
   never read the cookie, so they stay prerendered.
 - **Gating (`src/proxy.ts`):** a signed-in role too low for a page sees "Access denied" at that URL (status 200); a
   signed-in person opening `/login` goes to the Dashboard.
-- **Settings** (`.env.example`): `AUTH_REQUIRED=true` redirects signed-out visitors to `/login`. It is a runtime setting
-  (no rebuild) and off by default, so the app stays open. `AUTH_SECRET` signs the cookie; set a long random value on
-  any deployed copy.
+- **Settings** (`.env.example`): `AUTH_REQUIRED=false` opens the app to signed-out visitors (the role is then
+  `NEXT_PUBLIC_DEV_ROLE`); unset, or any other value, keeps sign-in mandatory. It is a runtime setting (no rebuild).
+  `AUTH_SECRET` signs the cookie; set a long random value on any deployed copy.
 - **Not secure:** the passwords are printed on the sign-in screen. Don't put real data behind it.
 
 ## PR diff → requirement input

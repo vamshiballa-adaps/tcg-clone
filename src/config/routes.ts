@@ -289,7 +289,7 @@ export const ROUTES: RouteDef[] = [
     path: "/login",
     title: "Sign in",
     description:
-      "Email and password against the built-in demo accounts (mock; no backend yet). A signed-in person always lands on the Dashboard.",
+      "First screen for a signed-out visitor: email and password against the built-in demo accounts (mock; no backend yet). A signed-in person always lands on the Dashboard.",
     features: ["S-01"],
     roles: "all",
     status: "in-progress",

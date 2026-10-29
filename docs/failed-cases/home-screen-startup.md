@@ -8,6 +8,12 @@ TCG if exact text is needed.
 local production build with Playwright, using role and accessible-name locators and TCG's 3-second retry window. **Not
 yet re-run through TCG**, so rerun the cases to confirm.
 
+**Update: sign-in is now mandatory.** These cases were recorded when a signed-out visitor could open `/` directly. A
+signed-out load of `/` now redirects to `/login`, so each case has to start by signing in (for example `admin@tcg.test` /
+`Admin#123`). The sign-in is a full page load of `/`, so the startup screen plays right after it and the checks below
+still apply from that point. To run the cases exactly as recorded, with no login first, deploy with
+`AUTH_REQUIRED=false`.
+
 ## Result
 
 - 12 test cases, 43 steps: **31 passed, 12 failed**.
