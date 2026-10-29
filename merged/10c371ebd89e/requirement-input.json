@@ -1,0 +1,81 @@
+{
+  "source": {
+    "repository": "vamshiballa-adaps/tcg-clone",
+    "event_name": "push",
+    "event_action": "",
+    "merged": true,
+    "pr_number": 5,
+    "pr_url": "https://github.com/vamshiballa-adaps/tcg-clone/pull/5",
+    "title": "Make sign-in mandatory: signed-out visitors land on /login first",
+    "author": "Bhargav-85",
+    "base_ref": "main",
+    "head_ref": "feature/login-required",
+    "base_sha": "854bf74bc9fdd363dba671bd611d076631b9ce3d",
+    "head_sha": "10c371ebd89e8f3f8e84916dadd8eb0b79addefb",
+    "generated_at": "2026-10-29T04:12:52.446Z"
+  },
+  "description": "AUTH_REQUIRED now defaults to on. A signed-out visit to any page, including \"/\", redirects to /login; only the auth screens, /api/auth/* and static assets stay open. AUTH_REQUIRED=false opens the app again (runtime setting, no rebuild); unset or any other value keeps sign-in mandatory.\n\nDocs updated to match (CLAUDE.md, README, .env.example, the Home startup cases now begin after a sign-in).",
+  "stats": {
+    "files": 6,
+    "additions": 44,
+    "deletions": 24
+  },
+  "commits": [
+    {
+      "sha": "10c371ebd89e8f3f8e84916dadd8eb0b79addefb",
+      "author": "Bhargav-85",
+      "subject": "Merge pull request #5 from vamshiballa-adaps/feature/login-required"
+    },
+    {
+      "sha": "73e15daf12593bf2b310a233fbdce944b812985e",
+      "author": "Priyanka Priyadarshani",
+      "subject": "Make sign-in mandatory: signed-out visitors land on /login first"
+    }
+  ],
+  "files": [
+    {
+      "status": "M",
+      "path": ".env.example",
+      "additions": 4,
+      "deletions": 4,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "CLAUDE.md",
+      "additions": 20,
+      "deletions": 11,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "README.md",
+      "additions": 8,
+      "deletions": 4,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "docs/failed-cases/home-screen-startup.md",
+      "additions": 6,
+      "deletions": 0,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "src/config/routes.ts",
+      "additions": 1,
+      "deletions": 1,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "src/proxy.ts",
+      "additions": 5,
+      "deletions": 4,
+      "binary": false
+    }
+  ],
+  "diff": "diff --git a/.env.example b/.env.example\nindex 0fe8972..2f4a6dc 100644\n--- a/.env.example\n+++ b/.env.example\n@@ -4,10 +4,10 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080\n # Dev-only: which tenant role the UI renders as until real auth lands (admin | user)\n NEXT_PUBLIC_DEV_ROLE=admin\n \n-# Mock sign-in (S-01). Signed out, the app is open and the role above applies. These two are server-side runtime\n-# settings: change them on the host, no rebuild. See README.md, \"Sign in (mock auth)\".\n-# AUTH_REQUIRED=true      send signed-out visitors to /login\n-# AUTH_SECRET=            signs the session cookie; set a long random value on any deployed copy (the default is public)\n+# Mock sign-in (S-01). Signing in is mandatory: signed-out visitors are sent to /login first. These two are server-side\n+# runtime settings: change them on the host, no rebuild. See README.md, \"Sign in (mock auth)\".\n+# AUTH_REQUIRED=false     open the app to signed-out visitors (the role above then applies); anything else keeps sign-in mandatory\n+# AUTH_SECRET=            signs the cookie; set a long random value on any deployed copy (the default is public)\n \n # Home screen's simulated cold start (\"Application loading\" + startup log). On by default; \"off\" skips it (a warm\n # deployment). Timings are in ms. See docs/failed-cases/home-screen-startup.md.\ndiff --git a/CLAUDE.md b/CLAUDE.md\nindex d284cff..deb1349 100644\n--- a/CLAUDE.md\n+++ b/CLAUDE.md\n@@ -9,8 +9,8 @@ The TCG backend (Go orchestration, Python core, the real AI Hub frontend) lives\n (`c:\\Users\\ChinthalapudiBhargav\\aihub`). Work in this repo is front-end only; do not edit `aihub` from here.\n \n Today most pages are still `PagePlaceholder`s built from `TCG_BRD_Feature_Catalogue.md` (see `README.md` for layout).\n-Sign-in is a mock with built-in accounts (see \"Sign in\" below); signed out, the role is the build-time\n-`NEXT_PUBLIC_DEV_ROLE`.\n+Sign-in is a mock with built-in accounts and is mandatory: the first screen a visitor sees is `/login` (see \"Sign in\"\n+below).\n \n ## How each TCG feature touches this app\n \n@@ -44,8 +44,9 @@ Sign-in is a mock with built-in accounts (see \"Sign in\" below); signed out, the\n - **Reachability.** TCG's crawler and Execute Scripts block private, loopback and link-local addresses (an SSRF guard,\n   with a `CRAWL_ALLOWED_HOSTS` allowlist). Do not assume `localhost` or LAN URLs work; plan on a publicly reachable\n   deployment, and ask the user if that is not possible.\n-- Signed in, the role comes from the account (`admin@tcg.test` or `user@tcg.test`), so one deployment shows both roles.\n-  Signed out it is the build-time `NEXT_PUBLIC_DEV_ROLE`.\n+- Signing in is mandatory, and the role comes from the account (`admin@tcg.test` or `user@tcg.test`), so one deployment\n+  shows both roles. Every test must start with a login. Only with `AUTH_REQUIRED=false` can a signed-out visitor in, with\n+  the build-time `NEXT_PUBLIC_DEV_ROLE`.\n \n ## Home screen startup sequence (deliberate)\n \n@@ -59,7 +60,9 @@ TC-006). Don't remove or retime it without reading that file.\n - The screen is a sibling of the app shell, not inside `<main>`. While it is up, CSS hides the shell from the\n   accessibility tree (a hidden ancestor would hide the screen from TCG's snapshots too) and hides Next's route announcer\n   host so the loading alert is the only `role=alert`.\n-- Only Home, only a full load. Other routes and client-side navigation are unaffected.\n+- Only Home, only a full load. Other routes and client-side navigation are unaffected. Sign-in is mandatory, so a\n+  signed-out visit to `/` goes to `/login` first; the sequence plays on the full load of `/` that follows a sign-in (or on\n+  a plain load of `/` when signed in already, or when the deployment has `AUTH_REQUIRED=false`).\n - `NEXT_PUBLIC_STARTUP_SEQUENCE=off` skips it (a warm deployment); `NEXT_PUBLIC_STARTUP_STEP_MS` and\n   `NEXT_PUBLIC_STARTUP_HOLD_MS` retime it. These are build-time, so redeploy after changing them.\n - The Render logo is a placeholder (`public/render-logo.svg`), not Render's official asset.\n@@ -86,15 +89,21 @@ the last three, field errors under the inputs for the first three):\n Behaviour a test can rely on:\n \n - A successful sign-in always lands on the Dashboard (A-24), by a full page load, so the Home startup screen plays first.\n-- The header then shows the person's name, a role badge and a \"Sign out\" button; signed out it shows a \"Sign in\" link.\n-  \"Sign out\" goes to `/login`. Email matching ignores case and surrounding spaces.\n+- The header then shows the person's name, a role badge and a \"Sign out\" button. \"Sign out\" goes to `/login`. Email\n+  matching ignores case and surrounding spaces. (The header's \"Sign in\" link only shows when `AUTH_REQUIRED=false` lets a\n+  signed-out visitor see the shell.)\n - A signed-in person opening `/login` is sent to the Dashboard.\n - A role too low for a page gets an \"Access denied\" page at that same URL (status 200, because a proxy rewrite cannot\n   set one). Admin-only: `/administration`, `/integrations`, `/cicd-automation`.\n-- By default the app is open when signed out. `AUTH_REQUIRED=true` (a runtime setting on the host, no rebuild) sends\n-  signed-out visitors to `/login` instead; the auth screens, `/api/auth/*` and static assets stay open. Turning it on\n-  makes any test that reaches a page without signing in first land on `/login`, so run Execute Scripts with\n-  credentials.\n+- **Signing in is mandatory.** A signed-out visitor who opens any page (including `/`) is redirected to `/login`; the\n+  auth screens (`/login`, `/signup`, `/forgot-password`, `/reset-password`, `/set-password`), `/api/auth/*` and static\n+  assets stay open. So a crawl or test that reaches a page without signing in first lands on `/login`: run Execute\n+  Scripts, and the crawl's optional login, with credentials. The Home startup cases in\n+  `docs/failed-cases/home-screen-startup.md` now begin after a sign-in (the sign-in is a full load of `/`, so the\n+  startup screen still plays).\n+- `AUTH_REQUIRED=false` (a runtime setting on the host, no rebuild) reverts to an open app for signed-out visitors, who\n+  get the build-time `NEXT_PUBLIC_DEV_ROLE`. Only the exact value `false` does that; unset or anything else keeps\n+  sign-in mandatory.\n \n Code: `src/app/(auth)/login/`, `src/components/auth/`, `src/app/api/auth/{login,logout,session}/route.ts`,\n `src/lib/auth/`, and `src/proxy.ts` (route gating). Pages and layouts never read the cookie: that would make them\ndiff --git a/README.md b/README.md\nindex 7449b8a..e7daddf 100644\n--- a/README.md\n+++ b/README.md\n@@ -28,7 +28,7 @@ npm run dev                  # http://localhost:3000\n | `src/app/api/auth/…`, `src/lib/auth/`, `src/proxy.ts` | Mock sign-in: login/logout/session endpoints, the signed session cookie, route gating. See \"Sign in (mock auth)\". |\n | `src/components/shell/` | App shell, sidebar (filtered by role), theme toggle, who's signed in. |\n | `src/components/PagePlaceholder.tsx` | Temporary page body listing the catalogue features still to build. |\n-| `src/lib/role.ts` | Tenant roles + `canAccess`. Signed out, `NEXT_PUBLIC_DEV_ROLE=admin\\|user` is the role; signed in, the account's role wins. |\n+| `src/lib/role.ts` | Tenant roles + `canAccess`. Signed in, the account's role wins; `NEXT_PUBLIC_DEV_ROLE=admin\\|user` only applies when `AUTH_REQUIRED=false` lets a signed-out visitor in. |\n | `src/lib/api/client.ts` | Fetch wrapper for the Go BFF (`NEXT_PUBLIC_API_BASE_URL`). |\n | `src/theme.ts` | Mantine theme. Both light and dark must work. |\n \n@@ -54,6 +54,10 @@ the Go BFF's signed session cookie.\n | User | `user@tcg.test` | `User#1234` | Signs in as user (no Administration, Integrations, CI/CD Automation) |\n | Locked | `locked@tcg.test` | `Locked#123` | Refused: \"This account is locked. Contact your workspace admin.\" |\n \n+**Signing in is mandatory:** a signed-out visitor who opens any page is sent to `/login` first, and only a successful\n+sign-in gets them into the app. Only the auth screens (`/login`, `/signup`, `/forgot-password`, `/reset-password`,\n+`/set-password`), `/api/auth/*` and static assets are open signed out.\n+\n Other outcomes: \"Enter your email address.\", \"Enter a valid email address.\", \"Enter your password.\", and \"Invalid email\n or password.\" for a wrong password or unknown email. A successful sign-in always lands on the Dashboard (A-24). The\n header then shows the person's name, role and **Sign out**; the sidebar follows their role.\n@@ -62,9 +66,9 @@ header then shows the person's name, role and **Sign out**; the sidebar follows\n   never read the cookie, so they stay prerendered.\n - **Gating (`src/proxy.ts`):** a signed-in role too low for a page sees \"Access denied\" at that URL (status 200); a\n   signed-in person opening `/login` goes to the Dashboard.\n-- **Settings** (`.env.example`): `AUTH_REQUIRED=true` redirects signed-out visitors to `/login`. It is a runtime setting\n-  (no rebuild) and off by default, so the app stays open. `AUTH_SECRET` signs the cookie; set a long random value on\n-  any deployed copy.\n+- **Settings** (`.env.example`): `AUTH_REQUIRED=false` opens the app to signed-out visitors (the role is then\n+  `NEXT_PUBLIC_DEV_ROLE`); unset, or any other value, keeps sign-in mandatory. It is a runtime setting (no rebuild).\n+  `AUTH_SECRET` signs the cookie; set a long random value on any deployed copy.\n - **Not secure:** the passwords are printed on the sign-in screen. Don't put real data behind it.\n \n ## PR diff → requirement input\ndiff --git a/docs/failed-cases/home-screen-startup.md b/docs/failed-cases/home-screen-startup.md\nindex 219d957..3f6164d 100644\n--- a/docs/failed-cases/home-screen-startup.md\n+++ b/docs/failed-cases/home-screen-startup.md\n@@ -8,6 +8,12 @@ TCG if exact text is needed.\n local production build with Playwright, using role and accessible-name locators and TCG's 3-second retry window. **Not\n yet re-run through TCG**, so rerun the cases to confirm.\n \n+**Update: sign-in is now mandatory.** These cases were recorded when a signed-out visitor could open `/` directly. A\n+signed-out load of `/` now redirects to `/login`, so each case has to start by signing in (for example `admin@tcg.test` /\n+`Admin#123`). The sign-in is a full page load of `/`, so the startup screen plays right after it and the checks below\n+still apply from that point. To run the cases exactly as recorded, with no login first, deploy with\n+`AUTH_REQUIRED=false`.\n+\n ## Result\n \n - 12 test cases, 43 steps: **31 passed, 12 failed**.\ndiff --git a/src/config/routes.ts b/src/config/routes.ts\nindex b99856f..4d8129e 100644\n--- a/src/config/routes.ts\n+++ b/src/config/routes.ts\n@@ -289,7 +289,7 @@ export const ROUTES: RouteDef[] = [\n     path: \"/login\",\n     title: \"Sign in\",\n     description:\n-      \"Email and password against the built-in demo accounts (mock; no backend yet). A signed-in person always lands on the Dashboard.\",\n+      \"First screen for a signed-out visitor: email and password against the built-in demo accounts (mock; no backend yet). A signed-in person always lands on the Dashboard.\",\n     features: [\"S-01\"],\n     roles: \"all\",\n     status: \"in-progress\",\ndiff --git a/src/proxy.ts b/src/proxy.ts\nindex e506915..548f8b4 100644\n--- a/src/proxy.ts\n+++ b/src/proxy.ts\n@@ -7,12 +7,13 @@ import { canAccess } from \"@/lib/role\";\n // never do, so they stay prerendered.\n //\n //   - signed in, opening /login          -> Dashboard\n-//   - signed out, AUTH_REQUIRED=true     -> /login (the auth screens themselves stay open)\n+//   - signed out                         -> /login (the auth screens themselves stay open)\n //   - signed in, role too low for a page -> the \"Access denied\" page, served at the same URL. The status stays 200: a\n //     proxy rewrite cannot set one, and Next's forbidden() (which can) is still experimental.\n //\n-// AUTH_REQUIRED is read on every request, so it is a runtime setting: change it on the host, no rebuild. It is off by\n-// default, so a signed-out visitor still gets the app (with the role from NEXT_PUBLIC_DEV_ROLE).\n+// Signing in is mandatory by default. AUTH_REQUIRED=false opens the app to signed-out visitors instead (with the role\n+// from NEXT_PUBLIC_DEV_ROLE). It is read on every request, so it is a runtime setting: change it on the host, no\n+// rebuild. Only the exact value \"false\" opens the app; unset or anything else keeps sign-in mandatory.\n \n // \"/projects/[id]\" -> /^\\/projects\\/[^/]+\\/?$/\n const PATTERNS = ROUTES.map((route) => ({\n@@ -29,7 +30,7 @@ export function proxy(request: NextRequest) {\n   }\n \n   if (!session) {\n-    const authRequired = process.env.AUTH_REQUIRED === \"true\";\n+    const authRequired = process.env.AUTH_REQUIRED !== \"false\";\n     if (authRequired && !AUTH_PATHS.includes(pathname)) return redirectTo(request, \"/login\");\n     return NextResponse.next();\n   }\n",
+  "diff_truncated": false
+}
