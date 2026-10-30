@@ -1,0 +1,77 @@
+{
+  "source": {
+    "repository": "vamshiballa-adaps/tcg-clone",
+    "event_name": "pull_request",
+    "event_action": "opened",
+    "merged": false,
+    "pr_number": 6,
+    "pr_url": "https://github.com/vamshiballa-adaps/tcg-clone/pull/6",
+    "title": "Add Forgot password screen (S-01)",
+    "author": "Bhargav-85",
+    "base_ref": "main",
+    "head_ref": "feature/forgot-password",
+    "base_sha": "10c371ebd89e8f3f8e84916dadd8eb0b79addefb",
+    "head_sha": "eb8cf11fddc8367139dcf599ccf727729709efe4",
+    "generated_at": "2026-10-30T05:11:47.214Z"
+  },
+  "description": "/forgot-password is no longer a placeholder: an Email field and a \"Send reset link\" button, the same email messages as sign-in, and a \"Reset link sent\" confirmation that is identical for every well-formed address (known, unknown or locked) so the screen never reveals which emails have an account. No mail is sent; /reset-password is still a placeholder.\n\nThe form is wiped when Next hides the page on navigation, so a return by client-side navigation shows a blank form rather than last visit's confirmation. The confirmation title avoids the word \"email\" so it cannot collide with getByLabel(\"Email\").\n\nEmail validation moves to src/lib/auth/validation.ts and the sign-in form uses it too, so both screens word the messages the same way.",
+  "stats": {
+    "files": 7,
+    "additions": 107,
+    "deletions": 11
+  },
+  "commits": [],
+  "files": [
+    {
+      "status": "M",
+      "path": "CLAUDE.md",
+      "additions": 12,
+      "deletions": 1,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "README.md",
+      "additions": 4,
+      "deletions": 1,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "src/app/(auth)/forgot-password/page.tsx",
+      "additions": 5,
+      "deletions": 2,
+      "binary": false
+    },
+    {
+      "status": "A",
+      "path": "src/components/auth/ForgotPasswordForm.tsx",
+      "additions": 71,
+      "deletions": 0,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "src/components/auth/LoginForm.tsx",
+      "additions": 2,
+      "deletions": 5,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "src/config/routes.ts",
+      "additions": 3,
+      "deletions": 2,
+      "binary": false
+    },
+    {
+      "status": "A",
+      "path": "src/lib/auth/validation.ts",
+      "additions": 10,
+      "deletions": 0,
+      "binary": false
+    }
+  ],
+  "diff": "diff --git a/CLAUDE.md b/CLAUDE.md\nindex deb1349..dd22fe4 100644\n--- a/CLAUDE.md\n+++ b/CLAUDE.md\n@@ -41,6 +41,11 @@ below).\n   login flow with a role-gated UI, since TCG's steps usually start with \"Login ...\".\n - **Never give two different destructive actions the same label**, and expect TCG never to click destructive-named\n   controls during a crawl.\n+- **Keep names from colliding with a field's label.** Playwright's `getByLabel(\"Email\")` is a case-insensitive substring\n+  match, so an alert titled \"Check your email\" also matched it. Also, after a client-side navigation Next keeps the\n+  previous page in the DOM, hidden: role locators skip it, but `getByLabel` still counts it, and its state comes back\n+  when you return (a form can reappear half-filled or showing last visit's result). Reset such state when the\n+  page is hidden (see `ForgotPasswordForm`).\n - **Reachability.** TCG's crawler and Execute Scripts block private, loopback and link-local addresses (an SSRF guard,\n   with a `CRAWL_ALLOWED_HOSTS` allowlist). Do not assume `localhost` or LAN URLs work; plan on a publicly reachable\n   deployment, and ask the user if that is not possible.\n@@ -101,11 +106,17 @@ Behaviour a test can rely on:\n   Scripts, and the crawl's optional login, with credentials. The Home startup cases in\n   `docs/failed-cases/home-screen-startup.md` now begin after a sign-in (the sign-in is a full load of `/`, so the\n   startup screen still plays).\n+- **Forgot password** (`/forgot-password`, open signed out, linked from sign-in as \"Forgot password?\"): heading \"Forgot\n+  password\", field \"Email\", button \"Send reset link\", link \"Back to sign in\". Same email messages as sign-in (\"Enter your\n+  email address.\", \"Enter a valid email address.\"). Any well-formed address, known, unknown or locked, gets the same\n+  status titled \"Reset link sent\": \"If an account exists for <email>, a link to reset your password is on its way.\"\n+  No mail is sent, and `/reset-password` is still a placeholder. The form is blank on every visit, including a return by\n+  client-side navigation.\n - `AUTH_REQUIRED=false` (a runtime setting on the host, no rebuild) reverts to an open app for signed-out visitors, who\n   get the build-time `NEXT_PUBLIC_DEV_ROLE`. Only the exact value `false` does that; unset or anything else keeps\n   sign-in mandatory.\n \n-Code: `src/app/(auth)/login/`, `src/components/auth/`, `src/app/api/auth/{login,logout,session}/route.ts`,\n+Code: `src/app/(auth)/{login,forgot-password}/`, `src/components/auth/`, `src/app/api/auth/{login,logout,session}/route.ts`,\n `src/lib/auth/`, and `src/proxy.ts` (route gating). Pages and layouts never read the cookie: that would make them\n dynamic and the Home startup screen would stop being prerendered, so the UI asks `/api/auth/session` after load.\n \ndiff --git a/README.md b/README.md\nindex e7daddf..745e6bc 100644\n--- a/README.md\n+++ b/README.md\n@@ -24,7 +24,7 @@ npm run dev                  # http://localhost:3000\n | `src/config/routes.ts` | **Screen registry.** Every screen from the catalogue: path, title, feature IDs (U-xx / A-xx / S-xx), min role, status, pipeline stage, sidebar entry. |\n | `src/config/pipeline.ts` | The 7 pipeline stages. |\n | `src/app/(app)/…` | Authenticated screens inside the app shell (sidebar: My Work / My Insights / My Organization). |\n-| `src/app/(auth)/…` | Login, signup, forgot/reset/set password (no shell). Only login is built (mock). |\n+| `src/app/(auth)/…` | Login, signup, forgot/reset/set password (no shell). Login and forgot password are built (mock). |\n | `src/app/api/auth/…`, `src/lib/auth/`, `src/proxy.ts` | Mock sign-in: login/logout/session endpoints, the signed session cookie, route gating. See \"Sign in (mock auth)\". |\n | `src/components/shell/` | App shell, sidebar (filtered by role), theme toggle, who's signed in. |\n | `src/components/PagePlaceholder.tsx` | Temporary page body listing the catalogue features still to build. |\n@@ -62,6 +62,9 @@ Other outcomes: \"Enter your email address.\", \"Enter a valid email address.\", \"En\n or password.\" for a wrong password or unknown email. A successful sign-in always lands on the Dashboard (A-24). The\n header then shows the person's name, role and **Sign out**; the sidebar follows their role.\n \n+- **Forgot password** (`/forgot-password`, open signed out): enter an email, press **Send reset link**. Any well-formed\n+  address gets the same \"Reset link sent\" confirmation, whether or not an account exists, so the screen never reveals\n+  which emails are registered. No mail is sent (no mail service yet) and `/reset-password` is still a placeholder.\n - **Session:** a signed, httpOnly cookie (`tcg_session`, 8 hours). The UI asks `/api/auth/session`; pages and layouts\n   never read the cookie, so they stay prerendered.\n - **Gating (`src/proxy.ts`):** a signed-in role too low for a page sees \"Access denied\" at that URL (status 200); a\ndiff --git a/src/app/(auth)/forgot-password/page.tsx b/src/app/(auth)/forgot-password/page.tsx\nindex 96251e7..38c2d90 100644\n--- a/src/app/(auth)/forgot-password/page.tsx\n+++ b/src/app/(auth)/forgot-password/page.tsx\n@@ -1,5 +1,8 @@\n-import { PagePlaceholder } from \"@/components/PagePlaceholder\";\n+import type { Metadata } from \"next\";\n+import { ForgotPasswordForm } from \"@/components/auth/ForgotPasswordForm\";\n+\n+export const metadata: Metadata = { title: \"Forgot password\" };\n \n export default function Page() {\n-  return <PagePlaceholder route=\"/forgot-password\" />;\n+  return <ForgotPasswordForm />;\n }\ndiff --git a/src/components/auth/ForgotPasswordForm.tsx b/src/components/auth/ForgotPasswordForm.tsx\nnew file mode 100644\nindex 0000000..4cecd38\n--- /dev/null\n+++ b/src/components/auth/ForgotPasswordForm.tsx\n@@ -0,0 +1,71 @@\n+\"use client\";\n+\n+import { useEffect, useRef, useState } from \"react\";\n+import Link from \"next/link\";\n+import { Alert, Anchor, Button, Stack, Text, TextInput, Title } from \"@mantine/core\";\n+import { validateEmail } from \"@/lib/auth/validation\";\n+\n+// The forgot-password screen (S-01). There is no mail service behind this test app, so it only checks the address and\n+// then confirms. The confirmation is the same for every well-formed address, known or not, so the screen never reveals\n+// which emails have an account (the sign-in screen does the same with \"Invalid email or password.\").\n+export function ForgotPasswordForm() {\n+  const [email, setEmail] = useState(\"\");\n+  const [error, setError] = useState<string>();\n+  const [sentTo, setSentTo] = useState<string | null>(null);\n+  const emailRef = useRef<HTMLInputElement>(null);\n+\n+  // Next keeps a page it navigated away from, hidden, with its state, and shows that copy again on the way back. Its\n+  // effects are cleaned up when it is hidden, so wipe the form then: every visit starts blank instead of showing last\n+  // visit's confirmation (with no form left to send another link).\n+  useEffect(\n+    () => () => {\n+      setEmail(\"\");\n+      setError(undefined);\n+      setSentTo(null);\n+    },\n+    [],\n+  );\n+\n+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {\n+    event.preventDefault();\n+    const message = validateEmail(email);\n+    setError(message);\n+    if (message) return emailRef.current?.focus();\n+    setSentTo(email.trim());\n+  }\n+\n+  return (\n+    <Stack gap=\"lg\">\n+      <Stack gap={4}>\n+        <Title order={1}>Forgot password</Title>\n+        <Text c=\"dimmed\">Enter your email and we will send you a link to reset your password.</Text>\n+      </Stack>\n+\n+      {sentTo ? (\n+        <Alert color=\"green\" title=\"Reset link sent\" role=\"status\">\n+          If an account exists for {sentTo}, a link to reset your password is on its way.\n+        </Alert>\n+      ) : (\n+        <form onSubmit={onSubmit} noValidate>\n+          <Stack>\n+            <TextInput\n+              ref={emailRef}\n+              label=\"Email\"\n+              name=\"email\"\n+              type=\"email\"\n+              autoComplete=\"username\"\n+              value={email}\n+              onChange={(e) => setEmail(e.currentTarget.value)}\n+              error={error}\n+            />\n+            <Button type=\"submit\">Send reset link</Button>\n+          </Stack>\n+        </form>\n+      )}\n+\n+      <Anchor component={Link} href=\"/login\" size=\"sm\">\n+        Back to sign in\n+      </Anchor>\n+    </Stack>\n+  );\n+}\ndiff --git a/src/components/auth/LoginForm.tsx b/src/components/auth/LoginForm.tsx\nindex d874f96..69a218b 100644\n--- a/src/components/auth/LoginForm.tsx\n+++ b/src/components/auth/LoginForm.tsx\n@@ -4,8 +4,7 @@ import { useRef, useState } from \"react\";\n import Link from \"next/link\";\n import { Alert, Anchor, Button, List, Paper, Stack, Text, TextInput, Title } from \"@mantine/core\";\n import { DEMO_USERS } from \"@/config/demo-users\";\n-\n-const EMAIL_RE = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n+import { validateEmail } from \"@/lib/auth/validation\";\n \n interface FieldErrors {\n   email?: string;\n@@ -28,9 +27,7 @@ export function LoginForm() {\n     setFormError(null);\n \n     const trimmed = email.trim();\n-    const errors: FieldErrors = {};\n-    if (!trimmed) errors.email = \"Enter your email address.\";\n-    else if (!EMAIL_RE.test(trimmed)) errors.email = \"Enter a valid email address.\";\n+    const errors: FieldErrors = { email: validateEmail(trimmed) };\n     if (!password) errors.password = \"Enter your password.\";\n     setFieldErrors(errors);\n     if (errors.email) return emailRef.current?.focus();\ndiff --git a/src/config/routes.ts b/src/config/routes.ts\nindex 4d8129e..d4137ce 100644\n--- a/src/config/routes.ts\n+++ b/src/config/routes.ts\n@@ -298,10 +298,11 @@ export const ROUTES: RouteDef[] = [\n   {\n     path: \"/forgot-password\",\n     title: \"Forgot password\",\n-    description: \"Request a reset link.\",\n+    description:\n+      \"Request a reset link by email (mock; no mail service yet). The confirmation is the same for any valid address.\",\n     features: [\"S-01\"],\n     roles: \"all\",\n-    status: \"todo\",\n+    status: \"in-progress\",\n   },\n   {\n     path: \"/reset-password\",\ndiff --git a/src/lib/auth/validation.ts b/src/lib/auth/validation.ts\nnew file mode 100644\nindex 0000000..1392ee2\n--- /dev/null\n+++ b/src/lib/auth/validation.ts\n@@ -0,0 +1,10 @@\n+const EMAIL_RE = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n+\n+// The email checks shared by the auth screens, so the sign-in and forgot-password forms word them identically. Returns\n+// the message to show under the field, or undefined when the (trimmed) value is fine.\n+export function validateEmail(value: string): string | undefined {\n+  const trimmed = value.trim();\n+  if (!trimmed) return \"Enter your email address.\";\n+  if (!EMAIL_RE.test(trimmed)) return \"Enter a valid email address.\";\n+  return undefined;\n+}\n",
+  "diff_truncated": false
+}
