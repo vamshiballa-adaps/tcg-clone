@@ -4,8 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Alert, Anchor, Button, List, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
 import { DEMO_USERS } from "@/config/demo-users";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { validateEmail } from "@/lib/auth/validation";
 
 interface FieldErrors {
   email?: string;
@@ -28,9 +27,7 @@ export function LoginForm() {
     setFormError(null);
 
     const trimmed = email.trim();
-    const errors: FieldErrors = {};
-    if (!trimmed) errors.email = "Enter your email address.";
-    else if (!EMAIL_RE.test(trimmed)) errors.email = "Enter a valid email address.";
+    const errors: FieldErrors = { email: validateEmail(trimmed) };
     if (!password) errors.password = "Enter your password.";
     setFieldErrors(errors);
     if (errors.email) return emailRef.current?.focus();

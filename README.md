@@ -24,7 +24,7 @@ npm run dev                  # http://localhost:3000
 | `src/config/routes.ts` | **Screen registry.** Every screen from the catalogue: path, title, feature IDs (U-xx / A-xx / S-xx), min role, status, pipeline stage, sidebar entry. |
 | `src/config/pipeline.ts` | The 7 pipeline stages. |
 | `src/app/(app)/…` | Authenticated screens inside the app shell (sidebar: My Work / My Insights / My Organization). |
-| `src/app/(auth)/…` | Login, signup, forgot/reset/set password (no shell). Only login is built (mock). |
+| `src/app/(auth)/…` | Login, signup, forgot/reset/set password (no shell). Login and forgot password are built (mock). |
 | `src/app/api/auth/…`, `src/lib/auth/`, `src/proxy.ts` | Mock sign-in: login/logout/session endpoints, the signed session cookie, route gating. See "Sign in (mock auth)". |
 | `src/components/shell/` | App shell, sidebar (filtered by role), theme toggle, who's signed in. |
 | `src/components/PagePlaceholder.tsx` | Temporary page body listing the catalogue features still to build. |
@@ -62,6 +62,9 @@ Other outcomes: "Enter your email address.", "Enter a valid email address.", "En
 or password." for a wrong password or unknown email. A successful sign-in always lands on the Dashboard (A-24). The
 header then shows the person's name, role and **Sign out**; the sidebar follows their role.
 
+- **Forgot password** (`/forgot-password`, open signed out): enter an email, press **Send reset link**. Any well-formed
+  address gets the same "Reset link sent" confirmation, whether or not an account exists, so the screen never reveals
+  which emails are registered. No mail is sent (no mail service yet) and `/reset-password` is still a placeholder.
 - **Session:** a signed, httpOnly cookie (`tcg_session`, 8 hours). The UI asks `/api/auth/session`; pages and layouts
   never read the cookie, so they stay prerendered.
 - **Gating (`src/proxy.ts`):** a signed-in role too low for a page sees "Access denied" at that URL (status 200); a

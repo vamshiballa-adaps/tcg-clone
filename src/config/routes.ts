@@ -298,10 +298,11 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/forgot-password",
     title: "Forgot password",
-    description: "Request a reset link.",
+    description:
+      "Request a reset link by email (mock; no mail service yet). The confirmation is the same for any valid address.",
     features: ["S-01"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
   },
   {
     path: "/reset-password",
