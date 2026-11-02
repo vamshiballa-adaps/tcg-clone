@@ -41,6 +41,11 @@ below).
   login flow with a role-gated UI, since TCG's steps usually start with "Login ...".
 - **Never give two different destructive actions the same label**, and expect TCG never to click destructive-named
   controls during a crawl.
+- **Keep names from colliding with a field's label.** Playwright's `getByLabel("Email")` is a case-insensitive substring
+  match, so an alert titled "Check your email" also matched it. Also, after a client-side navigation Next keeps the
+  previous page in the DOM, hidden: role locators skip it, but `getByLabel` still counts it, and its state comes back
+  when you return (a form can reappear half-filled or showing last visit's result). Reset such state when the
+  page is hidden (see `ForgotPasswordForm`).
 - **Reachability.** TCG's crawler and Execute Scripts block private, loopback and link-local addresses (an SSRF guard,
   with a `CRAWL_ALLOWED_HOSTS` allowlist). Do not assume `localhost` or LAN URLs work; plan on a publicly reachable
   deployment, and ask the user if that is not possible.
@@ -101,11 +106,17 @@ Behaviour a test can rely on:
   Scripts, and the crawl's optional login, with credentials. The Home startup cases in
   `docs/failed-cases/home-screen-startup.md` now begin after a sign-in (the sign-in is a full load of `/`, so the
   startup screen still plays).
+- **Forgot password** (`/forgot-password`, open signed out, linked from sign-in as "Forgot password?"): heading "Forgot
+  password", field "Email", button "Send reset link", link "Back to sign in". Same email messages as sign-in ("Enter your
+  email address.", "Enter a valid email address."). Any well-formed address, known, unknown or locked, gets the same
+  status titled "Reset link sent": "If an account exists for <email>, a link to reset your password is on its way."
+  No mail is sent, and `/reset-password` is still a placeholder. The form is blank on every visit, including a return by
+  client-side navigation.
 - `AUTH_REQUIRED=false` (a runtime setting on the host, no rebuild) reverts to an open app for signed-out visitors, who
   get the build-time `NEXT_PUBLIC_DEV_ROLE`. Only the exact value `false` does that; unset or anything else keeps
   sign-in mandatory.
 
-Code: `src/app/(auth)/login/`, `src/components/auth/`, `src/app/api/auth/{login,logout,session}/route.ts`,
+Code: `src/app/(auth)/{login,forgot-password}/`, `src/components/auth/`, `src/app/api/auth/{login,logout,session}/route.ts`,
 `src/lib/auth/`, and `src/proxy.ts` (route gating). Pages and layouts never read the cookie: that would make them
 dynamic and the Home startup screen would stop being prerendered, so the UI asks `/api/auth/session` after load.
 
