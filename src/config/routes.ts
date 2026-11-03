@@ -118,10 +118,10 @@ export const ROUTES: RouteDef[] = [
     path: "/projects",
     title: "Projects",
     description:
-      "Flat list that runs and documents are filed under. Create/edit with department, code and status (Active, On hold, Archived).",
+      "Flat list that runs and documents are filed under. Search and New project (name, department, code, status, description) are built; edit and the status change are still to do. Projects added in the browser are not saved.",
     features: ["U-24", "U-42", "A-26"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Work", label: "Projects" },
   },
   {

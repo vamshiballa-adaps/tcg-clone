@@ -41,6 +41,9 @@ below).
   login flow with a role-gated UI, since TCG's steps usually start with "Login ...".
 - **Never give two different destructive actions the same label**, and expect TCG never to click destructive-named
   controls during a crawl.
+- **Check the accessibility tree, not only the markup.** A bare `<th>` in the Projects table showed up as an ordinary
+  `cell` until it got `scope="col"`, and Mantine's `Badge` capitalises with CSS, so the screen said "ACTIVE" while the DOM
+  said "Active" (set `tt="none"`). Probe with `locator.ariaSnapshot()` after building a table or a badge.
 - **Keep names from colliding with a field's label.** Playwright's `getByLabel("Email")` is a case-insensitive substring
   match, so an alert titled "Check your email" also matched it. Also, after a client-side navigation Next keeps the
   previous page in the DOM, hidden: role locators skip it, but `getByLabel` still counts it, and its state comes back
@@ -122,6 +125,29 @@ dynamic and the Home startup screen would stop being prerendered, so the UI asks
 
 Not secure by design: the passwords are public, and the session cookie is signed with `AUTH_SECRET` (a public default
 if unset). Never put real data behind it.
+
+## Projects (U-24, first slice)
+
+`/projects` (all roles) lists the projects runs and documents are filed under. Built: the list, search, and New project.
+Still to do: edit, changing status afterwards (U-42), the project's own page and tabs (U-45), Admin-maintained
+departments (A-26, fixed in `src/config/departments.ts` for now). Code: `src/features/projects/`.
+
+- Heading "Projects"; button "New project"; search box labelled "Search projects" (matches name, code, department or
+  creator, ignoring case and surrounding spaces); a plain line "Showing N of M projects"; "No projects match "xyz"."
+  replaces the table when nothing matches.
+- Table named "Projects" with column headers Name, Code, Department, Created by, Inputs, Outputs, Runs, Last activity,
+  Status. Five seeded rows, newest first: Payments Gateway (PAY, Engineering, Alex Admin, Active), Customer Portal (CPT,
+  Product, Uma User, Active), Mobile Onboarding (MOB, QA, Uma User, Active), Legacy Billing (LBL, Finance, Sam Rivera,
+  On hold), 2024 Audit Prep (AUD, Finance, Alex Admin, Archived). There is no delete anywhere (the catalogue has none).
+- "New project" opens a dialog named "New project": Name, Department (select; Engineering, Finance, Product, QA), Code,
+  Status (select; Active default, On hold, Archived), Description; buttons "Create project" and "Cancel". Messages under
+  the fields: "Enter a project name.", "Project name must be 50 characters or fewer." (51+ fails, exactly 50 passes), "A
+  project with this name already exists." (trimmed, case-insensitive, so "payments gateway" clashes), "Choose a
+  department.", "Enter a project code.". Code and Description are not checked beyond that.
+- A valid form closes the dialog, puts the project first (creator is the signed-in person, 0 inputs/outputs/runs, "Just
+  now") and shows a status "Project created": `"<name>" was added to the list.` (button "Dismiss").
+- **Nothing is saved.** The list lives in the page, so a full reload goes back to the five seeded rows; a client-side
+  navigation away and back keeps what was added.
 
 ## PR diff to requirement input (workflow)
 

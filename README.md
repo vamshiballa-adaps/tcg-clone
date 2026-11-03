@@ -74,6 +74,14 @@ header then shows the person's name, role and **Sign out**; the sidebar follows 
   `AUTH_SECRET` signs the cookie; set a long random value on any deployed copy.
 - **Not secure:** the passwords are printed on the sign-in screen. Don't put real data behind it.
 
+## Projects (U-24, first slice)
+
+`/projects` lists five seeded projects with a **Search projects** box (name, code, department or creator) and a **New
+project** dialog: name (up to 50 characters, unique ignoring case), department, code, status, description. A created
+project goes to the top of the list. **Nothing is saved**: a full reload returns to the seeded list. Edit, changing a
+project's status, the project page and tabs, and Admin-maintained departments are still to do. Code lives in
+`src/features/projects/`.
+
 ## PR diff → requirement input
 
 [`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does
