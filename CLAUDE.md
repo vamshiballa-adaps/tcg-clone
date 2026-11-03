@@ -146,32 +146,30 @@ a mock API, and the branch-publish logic against a local bare repo). It has not 
 `requirements-inbox` branch are the safe delivery paths; do not rely on the webhook landing anywhere yet. Details are
 in `README.md`.
 
-## TCG CI/CD trigger workflow (local TCG, self-hosted runner)
+## TCG CI/CD trigger workflow (local TCG, through a tunnel)
 
 `.github/workflows/tcg-cicd-automation.yml` is TCG's generated GitHub Actions workflow. It fires when a PR merges into
-`main` (and on manual dispatch) and posts the diff to TCG's trigger endpoint. As of 2026-11-03 its repository secrets
-`TCG_CICD_TOKEN` and `TCG_CICD_ENDPOINT_URL` hold the **local** TCG's values (project 16, endpoint
-`http://localhost:3000/...`). The earlier stage connection (project 546, `https://adaps.net/cicd-automation/546`) is no
-longer wired: its values were overwritten, and GitHub cannot show them again, so they must be copied from TCG to bring it
-back. A short-lived second file, `tcg-cicd-automation-local.yml`, read a separate `TCG_LOCAL_CICD_*` pair that was never
-set, so it was removed.
+`main` (and on manual dispatch) and posts the diff to TCG's trigger endpoint, from a GitHub-hosted runner (`ubuntu-latest`).
+Its repository secrets `TCG_CICD_TOKEN` and `TCG_CICD_ENDPOINT_URL` point at the **local** TCG (project 16), replacing the
+earlier stage connection (project 546, `https://adaps.net/cicd-automation/546`). The old stage values were overwritten and
+GitHub cannot show them again, so they must be copied from TCG to bring stage back. A second file,
+`tcg-cicd-automation-local.yml`, read a `TCG_LOCAL_CICD_*` pair that was never set, so it was removed.
 
-- **`localhost` is only reachable from a runner on the developer's PC,** so the job runs on a **self-hosted runner**
-  (`runs-on: [self-hosted, Windows]`, steps run in Git Bash). A GitHub-hosted runner fails with "Failed to connect to
-  localhost port 3000". The alternative that keeps `ubuntu-latest` is to point the endpoint secret at a tunnel to the
-  local TCG.
-- It differs from TCG's generated file in five documented ways (see the comment at the top of the workflow): the runner,
-  a same-repo-only `if`, a first step that checks `git`, `curl` and `jq` are installed, the request body sent from a file
-  (Windows rejects a command line over about 32 KB, which a 33 KB diff already hits), and the project link. If TCG
-  regenerates its file, re-apply those.
-- Needed when a PR merges: the runner online (otherwise the job just waits for one), the local TCG running on port 3000,
-  and `jq` on the runner's Git Bash (not installed by default; the first step says so).
+- **The endpoint secret must be a public URL, never `http://localhost:3000/...`.** The job runs on GitHub's computer, where
+  `localhost` is that computer, not the developer's PC, so curl fails with "Failed to connect to localhost port 3000".
+  Stage worked because `adaps.net` is on the internet. Give the local TCG a public address with a tunnel (for example a
+  Cloudflare quick tunnel or ngrok pointed at port 3000) and set the secret to
+  `https://<tunnel-host>/api/v1/tcg/cicd/trigger`. The token stays as is.
+- A quick tunnel gets a new URL each time it restarts, so update `TCG_CICD_ENDPOINT_URL` then. The tunnel and the local TCG
+  have to be running when a PR merges. While it is up, the tunnel exposes the whole local TCG app to anyone who has the
+  URL, not only the trigger endpoint, so stop it when not in use.
+- The workflow is TCG's file unchanged except the project link in the last error message (project 16). If TCG
+  regenerates its file, re-apply that. PR #9 had moved the job to a self-hosted runner on the PC instead, which `localhost`
+  would work from, but it needs a runner registered and online on that PC (the job sat queued with none), plus `jq` and
+  a fork-approval setting; the tunnel avoids all of that.
 - A run goes red at "Trigger TCG re-execution" when a secret is missing, when TCG answers 403 (the GitHub Actions method
-  is not enabled in that project's CI/CD settings), or when TCG cannot be reached.
-- **Security:** a self-hosted runner executes whatever a workflow tells it to, on that PC, and GitHub advises against them
-  on public repositories. Here, set Settings, Actions, General, "Fork pull request workflows from outside collaborators" to
-  require approval for all of them. Token and endpoint values live only in Settings, Secrets and variables, Actions;
-  never in the repo or in anything that gets committed.
+  is not enabled in that project's CI/CD settings), or when TCG cannot be reached. Token and endpoint values live only in
+  Settings, Secrets and variables, Actions; never in the repo or in anything that gets committed.
 - The local TCG picks the deployed URL to test from project 16's last Execute Scripts run or crawl, so that target must be
   a URL the local TCG can reach.
 
