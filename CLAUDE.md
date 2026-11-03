@@ -163,8 +163,10 @@ GitHub cannot show them again, so they must be copied from TCG to bring stage ba
 - A quick tunnel gets a new URL each time it restarts, so update `TCG_CICD_ENDPOINT_URL` then. The tunnel and the local TCG
   have to be running when a PR merges. While it is up, the tunnel exposes the whole local TCG app to anyone who has the
   URL, not only the trigger endpoint, so stop it when not in use.
-- The workflow is TCG's file unchanged except the project link in the last error message (project 16). If TCG
-  regenerates its file, re-apply that. PR #9 had moved the job to a self-hosted runner on the PC instead, which `localhost`
+- The workflow is TCG's file with two changes: the project link in the last error message (project 16), and a `clean`
+  step at the top of the trigger script that strips stray whitespace from both secrets. A secret pasted with a trailing
+  newline or space made curl fail with "(3) URL rejected: Malformed input to a URL function" (the value looked right in
+  GitHub's editor; the caret sat on a second line). If TCG regenerates its file, re-apply both. PR #9 had moved the job to a self-hosted runner on the PC instead, which `localhost`
   would work from, but it needs a runner registered and online on that PC (the job sat queued with none), plus `jq` and
   a fork-approval setting; the tunnel avoids all of that.
 - A run goes red at "Trigger TCG re-execution" when a secret is missing, when TCG answers 403 (the GitHub Actions method
