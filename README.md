@@ -82,6 +82,13 @@ project goes to the top of the list. **Nothing is saved**: a full reload returns
 project's status, the project page and tabs, and Admin-maintained departments are still to do. Code lives in
 `src/features/projects/`.
 
+## Help & Feedback (U-39)
+
+`/help` (sidebar: **Help & Feedback**, all roles) is a form with a **Kind** (Problem, Idea, Question), an **Area** (13
+product areas), a **Subject** (up to 80 characters) and **Details** (at least 10). **Send feedback** shows a "Feedback
+sent" confirmation. **Nothing is stored or sent anywhere**: there is no inbox behind this test app. Code lives in
+`src/features/help/`.
+
 ## PR diff → requirement input
 
 [`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does

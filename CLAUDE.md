@@ -149,6 +149,26 @@ departments (A-26, fixed in `src/config/departments.ts` for now). Code: `src/fea
 - **Nothing is saved.** The list lives in the page, so a full reload goes back to the five seeded rows; a client-side
   navigation away and back keeps what was added.
 
+## Help & Feedback (U-39)
+
+`/help` (all roles, sidebar link "Help & Feedback" under My Work) is a form for reporting a problem, an idea or a
+question. Code: `src/features/help/`.
+
+- Heading "Help & Feedback" (level 2). Fields: "Kind" (radio group: Problem, Idea, Question; none chosen at first),
+  "Area" (select: a prompt "Select an area" then Requirements input, Requirements analysis, Scenarios, Test cases,
+  Automation scripts, Script execution, Reports & exports, Projects, Inbox, Administration, Integrations, CI/CD
+  automation, Other; the same list for both roles), "Subject" (text) and "Details" (multi-line); button "Send feedback".
+- Messages under the fields: "Choose a kind.", "Choose an area.", "Enter a subject.", "Subject must be 80 characters or
+  fewer." (81+ fails, exactly 80 passes), "Enter some details.", "Details must be at least 10 characters." (9 fails,
+  exactly 10 passes). Subject and Details are judged trimmed, so spaces alone count as empty. Focus moves to the first
+  field that is wrong, in the order Kind, Area, Subject, Details.
+- A valid form is replaced by a status titled "Feedback sent": `Your <kind in lower case> about <area> was sent:
+  "<subject, trimmed>".` (for example `Your problem about Reports & exports was sent: "CSV export is empty".`), and a
+  button "Send more feedback" that brings back a blank form.
+- **Nothing is stored or sent**; there is no inbox or reference number. Leaving the page and coming back by client-side
+  navigation always shows a blank form (state is reset when the page is hidden, as in `ForgotPasswordForm`), unlike
+  Projects, which keeps what was added.
+
 ## PR diff to requirement input (workflow)
 
 `.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does

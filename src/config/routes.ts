@@ -254,10 +254,12 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/help",
     title: "Help & Feedback",
-    description: "Submit a problem, idea or question with an area picker.",
+    description:
+      "Send a problem, an idea or a question, filed under an area of the product (mock; nothing is stored or sent anywhere).",
     features: ["U-39"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
+    nav: { group: "My Work", label: "Help & Feedback" },
   },
   {
     path: "/profile",
