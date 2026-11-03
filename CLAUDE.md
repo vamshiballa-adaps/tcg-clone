@@ -146,6 +146,26 @@ a mock API, and the branch-publish logic against a local bare repo). It has not 
 `requirements-inbox` branch are the safe delivery paths; do not rely on the webhook landing anywhere yet. Details are
 in `README.md`.
 
+## TCG CI/CD trigger workflows (stage and local)
+
+Two copies of TCG's generated GitHub Actions workflow fire when a PR merges into `main` (and on manual dispatch), one per
+TCG instance. A repository secret holds one value per name, so each copy reads its own pair:
+
+| Workflow | TCG instance | Repository secrets |
+| --- | --- | --- |
+| `.github/workflows/tcg-cicd-automation.yml` | stage, project 546 (`https://adaps.net/cicd-automation/546`) | `TCG_CICD_TOKEN`, `TCG_CICD_ENDPOINT_URL` |
+| `.github/workflows/tcg-cicd-automation-local.yml` | the developer's local TCG, project 16 (`http://localhost:3000/cicd-automation/16`) | `TCG_LOCAL_CICD_TOKEN`, `TCG_LOCAL_CICD_ENDPOINT_URL` |
+
+- The local file is the stage file with three changes only: the workflow name, the secret names and the project link. If
+  TCG regenerates its file, re-apply those three. Token and endpoint values live only in Settings, Secrets and variables,
+  Actions; never in the repo or in chat logs that get committed.
+- A run goes red at "Trigger TCG re-execution" when its secrets are missing, when TCG answers 403 (the GitHub Actions
+  method is not enabled in that project's CI/CD settings), or when TCG cannot be reached.
+- **The local copy runs on a GitHub-hosted runner, where `localhost` is the runner itself.** Its endpoint secret has to be
+  a URL that runner can reach (a tunnel to the local TCG), and the local TCG has to be running when the PR merges.
+- Each TCG picks the deployed URL to test from its own project's last Execute Scripts run or crawl, so that project's
+  target must be a URL that TCG instance can reach.
+
 ## Open questions (close these when answered, then delete them here)
 
 1. **Webhook landing place.** No TCG endpoint is known that accepts an external push as a requirement input. The
