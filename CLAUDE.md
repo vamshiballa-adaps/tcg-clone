@@ -195,6 +195,26 @@ real top-ups and a history (Token Usage, U-35, is a separate screen).
 - Statuses have a "Dismiss" button. **Nothing is saved**: a full reload returns to 100,000 / 62,400 / 37,600. A
   client-side navigation away and back keeps an admin's new allowance but drops last visit's status.
 
+## Get Started (U-38)
+
+`/get-started` (all roles, sidebar link "Get Started" under My Work, same for both roles) is a five-step tour with no
+data behind it. Code: `src/features/get-started/` (the steps are in `steps.ts`). Still to do: the Guide, Shortcuts
+and the "What next?" menu (also U-38).
+
+- Heading "Get Started" (level 2); a progress bar named "Tour progress" (value 20, 40, 60, 80, 100) and the text "Step 1
+  of 5" (a polite live region; "Tour finished" at the end); an ordered list of the steps, whose current item has
+  `aria-current="step"`.
+- The list is not clickable; **Back**, **Next** and **Finish** are the only controls. Steps (list name, then the panel
+  heading, level 3): Project / "Create a project", Requirements / "Add requirements", Analysis / "Review the analysis",
+  Test cases / "Generate test cases", Scripts / "Run the scripts". The list says the short noun and the panel the verb
+  phrase on purpose, so no text appears twice, and the panel has no links (a link named like a sidebar item would
+  make `getByRole("link", { name: "Projects" })` match twice).
+- Step 1: "Back" is disabled. Steps 1 to 4: "Next". Step 5: "Finish" replaces "Next". "Finish" replaces the panel with
+  a status "Tour complete": "You have seen all 5 steps. You can start over any time." and a button "Start over" (back to
+  step 1).
+- **Nothing is saved.** Every visit starts at step 1: a full reload, and also a client-side navigation away and back
+  (state is reset when the page is hidden, as in `ForgotPasswordForm`), so a half-finished tour is not resumed.
+
 ## PR diff to requirement input (workflow)
 
 `.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does

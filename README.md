@@ -96,6 +96,14 @@ sent" confirmation. **Nothing is stored or sent anywhere**: there is no inbox be
 a **user** gets **Request tokens** (amount and reason; nothing moves). **Nothing is saved**: a full reload returns to the
 seeded numbers. Other plan content is still to do. Code lives in `src/features/plan/`.
 
+## Get Started (U-38)
+
+`/get-started` (sidebar: **Get Started** under My Work, all roles) is a five-step tour of how a run goes from
+requirements to test results: Create a project, Add requirements, Review the analysis, Generate test cases, Run the
+scripts. **Back**, **Next** and **Finish** move through it, a progress bar and "Step N of 5" show where you are, and
+**Finish** shows "Tour complete" with **Start over**. Nothing is saved: every visit starts at step 1. The Guide and
+Shortcuts (also U-38) are still to do. Code lives in `src/features/get-started/`.
+
 ## PR diff → requirement input
 
 [`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does
