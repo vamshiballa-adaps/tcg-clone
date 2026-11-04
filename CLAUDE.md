@@ -195,6 +195,30 @@ real top-ups and a history (Token Usage, U-35, is a separate screen).
 - Statuses have a "Dismiss" button. **Nothing is saved**: a full reload returns to 100,000 / 62,400 / 37,600. A
   client-side navigation away and back keeps an admin's new allowance but drops last visit's status.
 
+## Token Usage (U-35)
+
+`/insights/token-usage` (all roles, sidebar link "Token Usage" under My Insights) is a filterable log of where the tokens
+went. Code: `src/features/token-usage/` (the rows are in `data.ts`). Still to do: the top-up history (U-35, A-23).
+
+- Heading "Token Usage" (level 2); sections (level 3) "Summary" and "Usage log". The page waits for the session, so a
+  user never sees the admin's view for a moment.
+- **Admin** (whole workspace): Summary "Tokens added" 100,000, "Tokens consumed" 62,400, "Tokens remaining" 37,600,
+  "Total in view" (the filtered rows); filters "Period" (All dates, November 2026, October 2026), "Operation" (All
+  operations, Requirements analysis, Scenario generation, Test case generation, Script generation, Script execution) and
+  "Person" (All people, Alex Admin, Sam Rivera, Uma User); table named "Token usage" with columns Date, Person,
+  Operation, Tokens; 12 rows, newest first (the first is 2026-11-03, Uma User, Script generation, 8,400).
+- **User** (own rows only, matched by email): Summary "Tokens you consumed" 29,100 and "Total in view" (no added or
+  remaining); filters Period and Operation only; columns Date, Operation, Tokens; 5 rows. Alex's and Sam's rows never
+  show. Sam Rivera has no built-in account, so only an admin sees those 3 rows.
+- A plain line "Showing N of M entries" (M is the rows the role may see). Filters combine (all that are set must match).
+  When nothing matches, "No usage matches these filters." replaces the table. "Clear filters" resets the three
+  selects and is disabled while none is set. Total in view follows the filters; the other summary figures never do.
+- The rows add up to the 62,400 My Plan shows ("Tokens used"; Uma 29,100, Alex 18,300, Sam 15,000), but they are
+  seeded: an admin's top-up on My Plan does not appear here. Dates are shown as YYYY-MM-DD and numbers always like
+  1,000,000, so the screen reads the same on any day and in any locale.
+- **Nothing is saved**, and the filters start unfiltered on every visit: a full reload, and also a client-side
+  navigation away and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
 ## Get Started (U-38)
 
 `/get-started` (all roles, sidebar link "Get Started" under My Work, same for both roles) is a five-step tour with no

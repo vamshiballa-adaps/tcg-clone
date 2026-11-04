@@ -96,6 +96,13 @@ sent" confirmation. **Nothing is stored or sent anywhere**: there is no inbox be
 a **user** gets **Request tokens** (amount and reason; nothing moves). **Nothing is saved**: a full reload returns to the
 seeded numbers. Other plan content is still to do. Code lives in `src/features/plan/`.
 
+## Token Usage (U-35)
+
+`/insights/token-usage` (sidebar: **Token Usage** under My Insights, all roles) shows a summary and a usage log you can
+filter by **Period**, **Operation** and, for an admin, **Person**. An **admin** sees all 12 entries (62,400 tokens, the
+same as My Plan); a **user** sees only their own 5 (29,100). The rows are fixed, and a top-up on My Plan does not show
+up here. Nothing is saved. The top-up history is still to do. Code lives in `src/features/token-usage/`.
+
 ## Get Started (U-38)
 
 `/get-started` (sidebar: **Get Started** under My Work, all roles) is a five-step tour of how a run goes from

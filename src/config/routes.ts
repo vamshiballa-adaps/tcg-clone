@@ -177,10 +177,11 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/insights/token-usage",
     title: "Token Usage",
-    description: "Tokens added, consumed and remaining; breakdown by person, operation and date; top-ups.",
+    description:
+      "Tokens added, consumed and remaining, and a usage log you can filter by period, operation and (Admin) person; a User sees only their own rows. Top-up history is still to build; nothing is saved.",
     features: ["U-35", "A-23"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Insights", label: "Token Usage" },
   },
   {
