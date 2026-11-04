@@ -169,6 +169,32 @@ question. Code: `src/features/help/`.
   navigation always shows a blank form (state is reset when the page is hidden, as in `ForgotPasswordForm`), unlike
   Projects, which keeps what was added.
 
+## My Plan (U-40, A-23)
+
+`/my-plan` (all roles, sidebar link "My Plan" under My Insights) shows the plan and a token meter, and the one place a
+role changes what the page can do. Code: `src/features/plan/`. Still to do: the rest of the plan content (placeholder),
+real top-ups and a history (Token Usage, U-35, is a separate screen).
+
+- Heading "My Plan" (level 2); sections "Plan details" (Organisation "Northwind Quality Labs", Plan "Team", and a line
+  "Other plan details are not available yet.") and "Token meter" (level 3).
+- Token meter: a progress bar named "Share of tokens consumed" (0 to 100, now 62), the text "62% used", and the figures
+  Token allowance 100,000, Tokens used 62,400, Tokens remaining 37,600 (numbers always written like 1,000,000).
+- **Admin** sees a button "Add tokens"; **User** sees "Request tokens" (never both). The button shows once the session is
+  known, not before: the stand-in role is admin, and a user would otherwise see the admin's button for a moment.
+- Admin: dialog "Add tokens", field "Amount", buttons "Confirm top-up" and "Cancel". A good amount closes the dialog,
+  raises the allowance, and shows a status "Top-up applied": `Added 5,000 tokens. You now have 42,600 tokens remaining.`
+  The meter moves (105,000 / 62,400 / 42,600, 59%); tokens used never change.
+- User: dialog "Request tokens", fields "Amount" and "Reason", buttons "Send request" and "Cancel". A good form closes the
+  dialog and shows a status "Request sent": `Your request for 2,500 tokens was sent to your admin.` The meter does not
+  move.
+- Amount rules (both roles): spaces around it are ignored; commas are fine only as thousands separators ("5,000"; "1,00"
+  and "5 000" are not); no decimals, signs or words. Messages: "Enter a number of tokens." (empty), "Enter a whole number
+  greater than zero." (0, 1.5, -5, abc, +5), "You can add at most 1,000,000 tokens at a time." (or "request"; 1,000,001
+  and up fails, exactly 1,000,000 passes). A user's empty Reason: "Tell your admin why you need them." (spaces alone
+  count as empty). Focus goes to the first wrong field, Amount before Reason.
+- Statuses have a "Dismiss" button. **Nothing is saved**: a full reload returns to 100,000 / 62,400 / 37,600. A
+  client-side navigation away and back keeps an admin's new allowance but drops last visit's status.
+
 ## PR diff to requirement input (workflow)
 
 `.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does

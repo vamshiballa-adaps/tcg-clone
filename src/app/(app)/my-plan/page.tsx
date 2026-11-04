@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { PlanScreen } from "@/features/plan/PlanScreen";
+
+export const metadata: Metadata = { title: "My Plan" };
 
 export default function Page() {
-  return <PagePlaceholder route="/my-plan" />;
+  return <PlanScreen />;
 }
