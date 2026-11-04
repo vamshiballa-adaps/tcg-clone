@@ -238,10 +238,12 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/get-started",
     title: "Get Started",
-    description: "Orientation walkthrough.",
+    description:
+      "Orientation walkthrough: a five-step tour from requirements to test results (the Guide and Shortcuts are still to build).",
     features: ["U-38"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
+    nav: { group: "My Work", label: "Get Started" },
   },
   {
     path: "/guide",
