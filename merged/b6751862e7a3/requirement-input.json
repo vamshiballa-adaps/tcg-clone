@@ -1,0 +1,81 @@
+{
+  "source": {
+    "repository": "vamshiballa-adaps/tcg-clone",
+    "event_name": "push",
+    "event_action": "",
+    "merged": true,
+    "pr_number": 16,
+    "pr_url": "https://github.com/vamshiballa-adaps/tcg-clone/pull/16",
+    "title": "Add Get Started tour (U-38)",
+    "author": "Bhargav-85",
+    "base_ref": "main",
+    "head_ref": "feature/get-started",
+    "base_sha": "0c8ecac466f0a98bfc49d2536520d3b74343a393",
+    "head_sha": "b6751862e7a3a3429733a989d41158a6f1c90549",
+    "generated_at": "2026-11-04T05:19:08.619Z"
+  },
+  "description": "## What\n\n`/get-started` was a placeholder. It is now a working five-step tour of how a run goes from requirements to test results (catalogue U-38).\n\n- **Steps:** Create a project, Add requirements, Review the analysis, Generate test cases, Run the scripts. Each has a heading (level 3) and a short text.\n- **Controls:** **Back** (disabled on step 1), **Next**, and **Finish** in place of Next on step 5. The step list is not clickable, so those buttons are the only way through.\n- **Where you are:** a progress bar named \"Tour progress\" (20, 40, 60, 80, 100), the text \"Step 1 of 5\", and an ordered list with the current step marked `aria-current=\"step\"`.\n- **End:** **Finish** shows a status \"Tour complete\" (`You have seen all 5 steps. You can start over any time.`) and a **Start over** button.\n- **Reachable:** a \"Get Started\" link under My Work in the sidebar, for both roles, so a crawl can find it.\n- **Nothing is saved.** Every visit starts at step 1, including a return by client-side navigation (state resets when the page is hidden, as in `ForgotPasswordForm`).\n- The panel has no links on purpose: a link named like a sidebar item (\"Projects\") would make `getByRole(\"link\", { name: \"Projects\" })` match twice on this page. The list uses short nouns and the panel uses verb phrases, so no text appears twice.\n\nDocs: new sections in `README.md` and `CLAUDE.md` with the exact labels and texts.\n\n## Why this is useful for TCG\n\nA multi-step flow where the same button changes (Next, then Finish), a button that is disabled on the first step, a progress bar with ARIA values and a result that depends on the path taken give generated tests real pass/fail cases beyond single forms.\n\n## Checked\n\n- `npm run lint` and `npm run build` are clean.\n- 40 browser checks (Playwright against `next start`) pass: signed-out gate, both roles, every step's heading, text, progress and buttons, Back, Finish, Start over, leaving and returning, a full reload, keyboard Enter, a 390px-wide screen, and no console errors.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "stats": {
+    "files": 6,
+    "additions": 160,
+    "deletions": 4
+  },
+  "commits": [
+    {
+      "sha": "b6751862e7a3a3429733a989d41158a6f1c90549",
+      "author": "Bhargav-85",
+      "subject": "Merge pull request #16 from vamshiballa-adaps/feature/get-started"
+    },
+    {
+      "sha": "673bdc1406d96c7a6282cd673339a4e040e9d7f3",
+      "author": "Chinthalapudi Bhargav",
+      "subject": "Add Get Started tour (U-38)"
+    }
+  ],
+  "files": [
+    {
+      "status": "M",
+      "path": "CLAUDE.md",
+      "additions": 20,
+      "deletions": 0,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "README.md",
+      "additions": 8,
+      "deletions": 0,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "src/app/(app)/get-started/page.tsx",
+      "additions": 5,
+      "deletions": 2,
+      "binary": false
+    },
+    {
+      "status": "M",
+      "path": "src/config/routes.ts",
+      "additions": 4,
+      "deletions": 2,
+      "binary": false
+    },
+    {
+      "status": "A",
+      "path": "src/features/get-started/GetStartedScreen.tsx",
+      "additions": 86,
+      "deletions": 0,
+      "binary": false
+    },
+    {
+      "status": "A",
+      "path": "src/features/get-started/steps.ts",
+      "additions": 37,
+      "deletions": 0,
+      "binary": false
+    }
+  ],
+  "diff": "diff --git a/CLAUDE.md b/CLAUDE.md\nindex 2174aef..5414dba 100644\n--- a/CLAUDE.md\n+++ b/CLAUDE.md\n@@ -195,6 +195,26 @@ real top-ups and a history (Token Usage, U-35, is a separate screen).\n - Statuses have a \"Dismiss\" button. **Nothing is saved**: a full reload returns to 100,000 / 62,400 / 37,600. A\n   client-side navigation away and back keeps an admin's new allowance but drops last visit's status.\n \n+## Get Started (U-38)\n+\n+`/get-started` (all roles, sidebar link \"Get Started\" under My Work, same for both roles) is a five-step tour with no\n+data behind it. Code: `src/features/get-started/` (the steps are in `steps.ts`). Still to do: the Guide, Shortcuts\n+and the \"What next?\" menu (also U-38).\n+\n+- Heading \"Get Started\" (level 2); a progress bar named \"Tour progress\" (value 20, 40, 60, 80, 100) and the text \"Step 1\n+  of 5\" (a polite live region; \"Tour finished\" at the end); an ordered list of the steps, whose current item has\n+  `aria-current=\"step\"`.\n+- The list is not clickable; **Back**, **Next** and **Finish** are the only controls. Steps (list name, then the panel\n+  heading, level 3): Project / \"Create a project\", Requirements / \"Add requirements\", Analysis / \"Review the analysis\",\n+  Test cases / \"Generate test cases\", Scripts / \"Run the scripts\". The list says the short noun and the panel the verb\n+  phrase on purpose, so no text appears twice, and the panel has no links (a link named like a sidebar item would\n+  make `getByRole(\"link\", { name: \"Projects\" })` match twice).\n+- Step 1: \"Back\" is disabled. Steps 1 to 4: \"Next\". Step 5: \"Finish\" replaces \"Next\". \"Finish\" replaces the panel with\n+  a status \"Tour complete\": \"You have seen all 5 steps. You can start over any time.\" and a button \"Start over\" (back to\n+  step 1).\n+- **Nothing is saved.** Every visit starts at step 1: a full reload, and also a client-side navigation away and back\n+  (state is reset when the page is hidden, as in `ForgotPasswordForm`), so a half-finished tour is not resumed.\n+\n ## PR diff to requirement input (workflow)\n \n `.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does\ndiff --git a/README.md b/README.md\nindex 9f652b5..a4ac6d6 100644\n--- a/README.md\n+++ b/README.md\n@@ -96,6 +96,14 @@ sent\" confirmation. **Nothing is stored or sent anywhere**: there is no inbox be\n a **user** gets **Request tokens** (amount and reason; nothing moves). **Nothing is saved**: a full reload returns to the\n seeded numbers. Other plan content is still to do. Code lives in `src/features/plan/`.\n \n+## Get Started (U-38)\n+\n+`/get-started` (sidebar: **Get Started** under My Work, all roles) is a five-step tour of how a run goes from\n+requirements to test results: Create a project, Add requirements, Review the analysis, Generate test cases, Run the\n+scripts. **Back**, **Next** and **Finish** move through it, a progress bar and \"Step N of 5\" show where you are, and\n+**Finish** shows \"Tour complete\" with **Start over**. Nothing is saved: every visit starts at step 1. The Guide and\n+Shortcuts (also U-38) are still to do. Code lives in `src/features/get-started/`.\n+\n ## PR diff → requirement input\n \n [`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does\ndiff --git a/src/app/(app)/get-started/page.tsx b/src/app/(app)/get-started/page.tsx\nindex ef1b760..cdd36bf 100644\n--- a/src/app/(app)/get-started/page.tsx\n+++ b/src/app/(app)/get-started/page.tsx\n@@ -1,5 +1,8 @@\n-import { PagePlaceholder } from \"@/components/PagePlaceholder\";\n+import type { Metadata } from \"next\";\n+import { GetStartedScreen } from \"@/features/get-started/GetStartedScreen\";\n+\n+export const metadata: Metadata = { title: \"Get Started\" };\n \n export default function Page() {\n-  return <PagePlaceholder route=\"/get-started\" />;\n+  return <GetStartedScreen />;\n }\ndiff --git a/src/config/routes.ts b/src/config/routes.ts\nindex dc05aeb..f77aaae 100644\n--- a/src/config/routes.ts\n+++ b/src/config/routes.ts\n@@ -238,10 +238,12 @@ export const ROUTES: RouteDef[] = [\n   {\n     path: \"/get-started\",\n     title: \"Get Started\",\n-    description: \"Orientation walkthrough.\",\n+    description:\n+      \"Orientation walkthrough: a five-step tour from requirements to test results (the Guide and Shortcuts are still to build).\",\n     features: [\"U-38\"],\n     roles: \"all\",\n-    status: \"todo\",\n+    status: \"in-progress\",\n+    nav: { group: \"My Work\", label: \"Get Started\" },\n   },\n   {\n     path: \"/guide\",\ndiff --git a/src/features/get-started/GetStartedScreen.tsx b/src/features/get-started/GetStartedScreen.tsx\nnew file mode 100644\nindex 0000000..c8551ba\n--- /dev/null\n+++ b/src/features/get-started/GetStartedScreen.tsx\n@@ -0,0 +1,86 @@\n+\"use client\";\n+\n+import { useEffect, useState } from \"react\";\n+import { Alert, Box, Button, Group, Paper, Progress, Stack, Text, Title } from \"@mantine/core\";\n+import { TOUR_STEPS } from \"./steps\";\n+\n+const LAST = TOUR_STEPS.length - 1;\n+\n+// Get Started (U-38): a five-step tour of how a run goes from requirements to test results. Back, Next and Finish move\n+// through it; the step list is not clickable, so those buttons are the only way. Nothing is saved: the tour starts at\n+// step 1 on every visit.\n+export function GetStartedScreen() {\n+  const [index, setIndex] = useState(0);\n+  const [finished, setFinished] = useState(false);\n+\n+  // Next keeps a page it navigated away from, hidden, with its state, and shows that copy again on the way back. Its\n+  // effects are cleaned up when it is hidden, so go back to the start then: every visit begins at step 1 instead of\n+  // wherever the last one stopped.\n+  useEffect(\n+    () => () => {\n+      setIndex(0);\n+      setFinished(false);\n+    },\n+    [],\n+  );\n+\n+  const step = TOUR_STEPS[index];\n+  const position = finished ? TOUR_STEPS.length : index + 1;\n+\n+  function startOver() {\n+    setIndex(0);\n+    setFinished(false);\n+  }\n+\n+  return (\n+    <Stack gap=\"md\" maw={640}>\n+      <Title order={2}>Get Started</Title>\n+      <Text c=\"dimmed\">A five-step tour of how a run goes from requirements to test results.</Text>\n+\n+      <Progress value={(position / TOUR_STEPS.length) * 100} aria-label=\"Tour progress\" />\n+      <Text size=\"sm\" aria-live=\"polite\">\n+        {finished ? \"Tour finished\" : `Step ${position} of ${TOUR_STEPS.length}`}\n+      </Text>\n+\n+      <Box component=\"ol\" m={0} pl=\"lg\">\n+        {TOUR_STEPS.map((s, i) => (\n+          <li key={s.label} aria-current={!finished && i === index ? \"step\" : undefined}>\n+            <Text span fw={!finished && i === index ? 700 : 400} c={!finished && i === index ? undefined : \"dimmed\"}>\n+              {s.label}\n+            </Text>\n+          </li>\n+        ))}\n+      </Box>\n+\n+      {finished ? (\n+        <Stack>\n+          <Alert color=\"green\" title=\"Tour complete\" role=\"status\">\n+            You have seen all {TOUR_STEPS.length} steps. You can start over any time.\n+          </Alert>\n+          <Group>\n+            <Button variant=\"default\" onClick={startOver}>\n+              Start over\n+            </Button>\n+          </Group>\n+        </Stack>\n+      ) : (\n+        <Paper withBorder p=\"md\">\n+          <Stack gap=\"sm\">\n+            <Title order={3}>{step.title}</Title>\n+            <Text>{step.text}</Text>\n+            <Group justify=\"space-between\" mt=\"xs\">\n+              <Button variant=\"default\" onClick={() => setIndex(index - 1)} disabled={index === 0}>\n+                Back\n+              </Button>\n+              {index < LAST ? (\n+                <Button onClick={() => setIndex(index + 1)}>Next</Button>\n+              ) : (\n+                <Button onClick={() => setFinished(true)}>Finish</Button>\n+              )}\n+            </Group>\n+          </Stack>\n+        </Paper>\n+      )}\n+    </Stack>\n+  );\n+}\ndiff --git a/src/features/get-started/steps.ts b/src/features/get-started/steps.ts\nnew file mode 100644\nindex 0000000..c67cc68\n--- /dev/null\n+++ b/src/features/get-started/steps.ts\n@@ -0,0 +1,37 @@\n+export interface TourStep {\n+  /** Short name in the step list. */\n+  label: string;\n+  /** Heading of the step panel. */\n+  title: string;\n+  text: string;\n+}\n+\n+// The walkthrough on Get Started (U-38): how a run goes from requirements to test results, in the order the pipeline\n+// runs (see config/pipeline.ts). The list uses short nouns and the panel uses verb phrases, so no text appears twice.\n+export const TOUR_STEPS: TourStep[] = [\n+  {\n+    label: \"Project\",\n+    title: \"Create a project\",\n+    text: \"Projects hold your runs and documents. Open Projects in the sidebar and choose New project.\",\n+  },\n+  {\n+    label: \"Requirements\",\n+    title: \"Add requirements\",\n+    text: \"Start a run, name it, pick its project and add your requirements: a document, a Jira issue or a crawl of your app.\",\n+  },\n+  {\n+    label: \"Analysis\",\n+    title: \"Review the analysis\",\n+    text: \"TCG scores the requirements for readiness and lists findings by severity. Fix what matters before you go on.\",\n+  },\n+  {\n+    label: \"Test cases\",\n+    title: \"Generate test cases\",\n+    text: \"TCG turns the scenarios into test cases, each written as plain steps such as login, navigate and verify.\",\n+  },\n+  {\n+    label: \"Scripts\",\n+    title: \"Run the scripts\",\n+    text: \"Optionally turn the test cases into Playwright scripts and run them against your app, with a live view of the browser.\",\n+  },\n+];\n",
+  "diff_truncated": false
+}
