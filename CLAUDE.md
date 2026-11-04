@@ -215,6 +215,34 @@ and the "What next?" menu (also U-38).
 - **Nothing is saved.** Every visit starts at step 1: a full reload, and also a client-side navigation away and back
   (state is reset when the page is hidden, as in `ForgotPasswordForm`), so a half-finished tour is not resumed.
 
+## Profile (U-40, U-44)
+
+`/profile` (all roles, sidebar link "Profile" under My Work) shows the signed-in account, lets the person edit their
+display name and department, and change their password. Code: `src/features/profile/`. Still to do: notification
+preferences (U-44).
+
+- Heading "Profile" (level 2); three sections (level 3): "Account" (Email and Role as a term/definition list; Role reads
+  "Workspace admin" or "Workspace user", so it never repeats the header's role badge), "Edit profile" and "Password".
+  The page waits for the session, so the fields start with that person's own values.
+- **Edit profile:** "Display name" (starts as the account's name, "Alex Admin" or "Uma User") and "Department" (select:
+  a prompt "Select a department", then Engineering, Finance, Product, QA; starts as Engineering for the admin and Product
+  for the user); button "Save profile". Messages: "Enter your display name." (empty or spaces), "Display name must be 40
+  characters or fewer." (41+ fails, exactly 40 passes), "Choose a department.". A valid form shows a status "Profile
+  saved": `Your profile was updated: "<name, trimmed>" in <department>.` The header keeps showing the session's name.
+- **Password:** "Current password", "New password", "Confirm password" (the last is not "Confirm new password" on
+  purpose: `getByLabel("New password")` is a substring match and would find two fields); button "Change password".
+  "Current password" is checked against the signed-in account's real built-in password, so the admin's password is wrong
+  on the user's account and the reverse. Passwords are compared exactly: not trimmed, case-sensitive. Messages: "Enter
+  your current password.", "Current password is incorrect.", "Enter a new password.", "New password must be at least 8
+  characters." (7 fails, exactly 8 passes), "New password must be different from your current password." (only once the
+  current one is right), "Confirm your new password.", "Passwords do not match.". A valid form clears the three fields
+  and shows a status "Password changed": "Your password was changed."
+- Focus goes to the first wrong field (Display name before Department; Current, New, Confirm in that order). Only one
+  status shows at a time: a new submit removes the old one, and each has a "Dismiss" button.
+- **Nothing is saved**, and signing in still uses the built-in passwords, so a test that signs out and signs in with
+  the "new" password fails by design. A full reload, and also a client-side navigation away and back (state is reset
+  when the page is hidden, as in `ForgotPasswordForm`), shows the starting values, empty password fields and no status.
+
 ## PR diff to requirement input (workflow)
 
 `.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does

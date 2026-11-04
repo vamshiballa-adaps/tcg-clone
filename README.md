@@ -104,6 +104,14 @@ scripts. **Back**, **Next** and **Finish** move through it, a progress bar and "
 **Finish** shows "Tour complete" with **Start over**. Nothing is saved: every visit starts at step 1. The Guide and
 Shortcuts (also U-38) are still to do. Code lives in `src/features/get-started/`.
 
+## Profile (U-40, U-44)
+
+`/profile` (sidebar: **Profile** under My Work, all roles) shows the account (email and role), an **Edit profile** form
+(display name up to 40 characters, department) and a **Password** form (current, new of at least 8 characters, confirm).
+The current password is checked against the signed-in built-in account's real password. **Nothing is saved**: a reload
+shows the starting values, and sign-in keeps using the built-in passwords. Notification preferences are still to do.
+Code lives in `src/features/profile/`.
+
 ## PR diff → requirement input
 
 [`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does

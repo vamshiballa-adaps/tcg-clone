@@ -266,10 +266,12 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/profile",
     title: "Profile",
-    description: "Edit profile and department, change password, notification preferences.",
+    description:
+      "Your account, display name and department, and a change-password form (notification preferences are still to build; nothing is saved).",
     features: ["U-40", "U-44"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
+    nav: { group: "My Work", label: "Profile" },
   },
   {
     path: "/my-plan",
