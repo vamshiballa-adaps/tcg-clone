@@ -89,6 +89,13 @@ product areas), a **Subject** (up to 80 characters) and **Details** (at least 10
 sent" confirmation. **Nothing is stored or sent anywhere**: there is no inbox behind this test app. Code lives in
 `src/features/help/`.
 
+## My Plan (U-40, A-23)
+
+`/my-plan` (sidebar: **My Plan** under My Insights, all roles) shows the organisation, the plan and a token meter
+(100,000 allowance, 62,400 used, 37,600 left, 62%). An **admin** gets **Add tokens** (the allowance and the meter move);
+a **user** gets **Request tokens** (amount and reason; nothing moves). **Nothing is saved**: a full reload returns to the
+seeded numbers. Other plan content is still to do. Code lives in `src/features/plan/`.
+
 ## PR diff → requirement input
 
 [`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does

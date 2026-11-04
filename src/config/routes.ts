@@ -272,10 +272,12 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/my-plan",
     title: "My Plan",
-    description: "Organisation name and token meter (other plan content is placeholder).",
-    features: ["U-40"],
+    description:
+      "Organisation name and token meter; an Admin can add tokens, a User can request them (other plan content is placeholder, nothing is saved).",
+    features: ["U-40", "A-23"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
+    nav: { group: "My Insights", label: "My Plan" },
   },
   {
     path: "/access-denied",
