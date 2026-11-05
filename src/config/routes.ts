@@ -195,10 +195,11 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/insights/team-activity",
     title: "Team Activity",
-    description: "Activity across the team; Admins can open any user's activity.",
+    description:
+      "The people on the team with their runs and last activity. Only an Admin gets a control on each name to open that person's recent activity (seeded; nothing is saved).",
     features: ["A-09"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Insights", label: "Team Activity" },
   },
 

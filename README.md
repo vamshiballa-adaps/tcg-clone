@@ -89,6 +89,13 @@ product areas), a **Subject** (up to 80 characters) and **Details** (at least 10
 sent" confirmation. **Nothing is stored or sent anywhere**: there is no inbox behind this test app. Code lives in
 `src/features/help/`.
 
+## Team Activity (A-09)
+
+`/insights/team-activity` (sidebar: **Team Activity** under My Insights, all roles) lists the three people on the team
+with their role, runs this month and last activity. An **admin** can open any person (each name is a button) to see
+their recent activity; a **user** sees the same table with plain names and no way to open one. The activity is seeded
+and nothing is saved. Code lives in `src/features/team-activity/`.
+
 ## My Plan (U-40, A-23)
 
 `/my-plan` (sidebar: **My Plan** under My Insights, all roles) shows the organisation, the plan and a token meter

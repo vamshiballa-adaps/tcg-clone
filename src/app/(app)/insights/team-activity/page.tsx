@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { TeamActivityScreen } from "@/features/team-activity/TeamActivityScreen";
+
+export const metadata: Metadata = { title: "Team Activity" };
 
 export default function Page() {
-  return <PagePlaceholder route="/insights/team-activity" />;
+  return <TeamActivityScreen />;
 }
