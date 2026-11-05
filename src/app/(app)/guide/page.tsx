@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { GuideScreen } from "@/features/guide/GuideScreen";
+
+export const metadata: Metadata = { title: "Guide" };
 
 export default function Page() {
-  return <PagePlaceholder route="/guide" />;
+  return <GuideScreen />;
 }
