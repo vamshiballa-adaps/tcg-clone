@@ -155,10 +155,11 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/utilities/compare-docs",
     title: "Compare Docs",
-    description: "Diff two versions of one document with an AI report of added, removed and modified passages.",
+    description:
+      "Pick a document and two of its versions and read the added, removed and modified passages (seeded versions, matched by reference; no AI report yet, nothing is saved).",
     features: ["U-28"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Work", label: "Compare Docs" },
   },
 

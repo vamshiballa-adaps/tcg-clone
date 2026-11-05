@@ -149,6 +149,32 @@ departments (A-26, fixed in `src/config/departments.ts` for now). Code: `src/fea
 - **Nothing is saved.** The list lives in the page, so a full reload goes back to the five seeded rows; a client-side
   navigation away and back keeps what was added.
 
+## Compare Docs (U-28)
+
+`/utilities/compare-docs` (all roles, sidebar link "Compare Docs" under My Work, same for both roles) shows what changed
+between two versions of a document. Code: `src/features/compare-docs/` (the documents and the comparison are in
+`data.ts`). Still to do: the AI-written report and real documents; the versions are seeded and the changes are computed
+by passage reference, so there is no model behind it.
+
+- Heading "Compare Docs" (level 2); section "Compare two versions" (level 3) with selects "Document" (a prompt "Select a
+  document", then Payments Gateway Requirements, Customer Portal Requirements, Mobile Onboarding Requirements), "From
+  version" and "To version" (a prompt "Select a version", then v1, v2, v3) and a button "Compare versions". Nothing is
+  chosen at first and no report shows.
+- Messages under the fields: "Choose a document.", "Choose a starting version.", "Choose an ending version.", "Choose two
+  different versions." (the same version twice) and "The starting version must be older than the ending version." (v3 to
+  v1; the last two show under To version). Focus goes to the first wrong field, in the order Document, From, To.
+- A valid form shows a section "Comparison report" (level 3): `<document>: <from> to <to>`, a status "N added, N removed, N
+  modified." and three lists under level 4 headings "Added (N)", "Removed (N)" and "Modified (N)", each `R<n>: <text>`
+  (a modified one shows "Before:" and "After:"), or "None." when empty. Passages are matched by reference (R1, R2, ...).
+  When nothing differs the status reads "0 added, 0 removed, 0 modified." and "No differences between these versions."
+  replaces the three lists. **Changing any select removes the report**, so it always matches what is chosen.
+- What a test can rely on: Payments Gateway v1 to v3 is "2 added, 1 removed, 2 modified." (R5 and R6 added, R3 removed,
+  R2 and R4 modified); v1 to v2 is "1 added, 0 removed, 1 modified."; v2 to v3 is "1 added, 1 removed, 1 modified.".
+  Customer Portal v2 to v3 has no differences; v1 to v3 is "0 added, 0 removed, 1 modified.". Mobile Onboarding v1 to v3
+  is "2 added, 1 removed, 1 modified.".
+- **Nothing is saved**, and every visit starts blank: a full reload, and also a client-side navigation away and back
+  (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
 ## Help & Feedback (U-39)
 
 `/help` (all roles, sidebar link "Help & Feedback" under My Work) is a form for reporting a problem, an idea or a
