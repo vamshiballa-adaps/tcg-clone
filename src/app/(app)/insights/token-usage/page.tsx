@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { TokenUsageScreen } from "@/features/token-usage/TokenUsageScreen";
+
+export const metadata: Metadata = { title: "Token Usage" };
 
 export default function Page() {
-  return <PagePlaceholder route="/insights/token-usage" />;
+  return <TokenUsageScreen />;
 }
