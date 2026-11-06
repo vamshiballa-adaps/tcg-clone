@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { CompareDocsScreen } from "@/features/compare-docs/CompareDocsScreen";
+
+export const metadata: Metadata = { title: "Compare Docs" };
 
 export default function Page() {
-  return <PagePlaceholder route="/utilities/compare-docs" />;
+  return <CompareDocsScreen />;
 }
