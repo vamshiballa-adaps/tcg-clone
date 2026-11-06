@@ -241,7 +241,7 @@ export const ROUTES: RouteDef[] = [
     path: "/get-started",
     title: "Get Started",
     description:
-      "Orientation walkthrough: a five-step tour from requirements to test results (the Guide and Shortcuts are still to build).",
+      "Orientation walkthrough: a five-step tour from requirements to test results (Shortcuts and the What next menu are still to build).",
     features: ["U-38"],
     roles: "all",
     status: "in-progress",
@@ -250,10 +250,12 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/guide",
     title: "Guide",
-    description: "In-app guide of the pipeline and ISO / ISTQB / IREB standards.",
+    description:
+      "In-app guide with three tabs: the pipeline stage by stage (an accordion), the ISO / ISTQB / IREB standards, and a searchable glossary.",
     features: ["U-38"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
+    nav: { group: "My Work", label: "Guide" },
   },
   {
     path: "/help",

@@ -108,8 +108,15 @@ up here. Nothing is saved. The top-up history is still to do. Code lives in `src
 `/get-started` (sidebar: **Get Started** under My Work, all roles) is a five-step tour of how a run goes from
 requirements to test results: Create a project, Add requirements, Review the analysis, Generate test cases, Run the
 scripts. **Back**, **Next** and **Finish** move through it, a progress bar and "Step N of 5" show where you are, and
-**Finish** shows "Tour complete" with **Start over**. Nothing is saved: every visit starts at step 1. The Guide and
-Shortcuts (also U-38) are still to do. Code lives in `src/features/get-started/`.
+**Finish** shows "Tour complete" with **Start over**. Nothing is saved: every visit starts at step 1. Shortcuts (also
+U-38) is still to do; the Guide is its own page, below. Code lives in `src/features/get-started/`.
+
+## Guide (U-38)
+
+`/guide` (sidebar: **Guide** under My Work, all roles) is read-only help with three tabs: **Pipeline** (an accordion of
+the seven stages, one open at a time), **Standards** (ISO/IEC/IEEE 29148 and 29119-4, ISTQB, IREB) and **Glossary** (nine
+terms with a search box). Nothing is saved: every visit starts on Pipeline with every stage closed. Code lives in
+`src/features/guide/`.
 
 ## Profile (U-40, U-44)
 
