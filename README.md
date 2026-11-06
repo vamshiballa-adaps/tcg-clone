@@ -119,6 +119,14 @@ The current password is checked against the signed-in built-in account's real pa
 shows the starting values, and sign-in keeps using the built-in passwords. Notification preferences are still to do.
 Code lives in `src/features/profile/`.
 
+## My TCG Time (U-36)
+
+`/insights/my-time` (sidebar: **My TCG Time** under My Insights, all roles) lists the sessions you spent on the platform
+(date, start, end, area, duration) over a **Start date** and **End date** you type as `YYYY-MM-DD`, with a summary (total
+time, days with activity, busiest day). It is always your own time, for both roles. **Apply range** checks the dates (a
+range is at most 31 days) and **Reset range** goes back to the seeded range. The sessions are seeded and **nothing is
+saved**: every visit starts on the default range. Code lives in `src/features/my-time/`.
+
 ## PR diff → requirement input
 
 [`.github/workflows/pr-requirement-input.yml`](./.github/workflows/pr-requirement-input.yml) records what a change does

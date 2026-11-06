@@ -187,10 +187,11 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/insights/my-time",
     title: "My TCG Time",
-    description: "Minute-by-minute time you spent on the platform over a date range.",
+    description:
+      "Time you spent on the platform, session by session, over a start and end date you choose. Always your own, for both roles (seeded; nothing is saved).",
     features: ["U-36"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Insights", label: "My TCG Time" },
   },
   {

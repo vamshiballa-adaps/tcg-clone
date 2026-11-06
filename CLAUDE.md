@@ -267,6 +267,38 @@ preferences (U-44).
   the "new" password fails by design. A full reload, and also a client-side navigation away and back (state is reset
   when the page is hidden, as in `ForgotPasswordForm`), shows the starting values, empty password fields and no status.
 
+## My TCG Time (U-36)
+
+`/insights/my-time` (all roles, sidebar link "My TCG Time" under My Insights) is a log of the sessions a person spent on
+the platform, over a date range they choose. Code: `src/features/my-time/` (the sessions are in `data.ts`). It is
+always the signed-in person's own time, for both roles (Team Activity, A-09, is the separate screen that looks across
+people, still a placeholder).
+
+- Heading "My TCG Time" (level 2); sections (level 3) "Date range", "Summary" and "Time log". The page waits for the
+  session, so a person never sees the admin's rows for a moment.
+- **Rows** (matched by email): user (Uma) has 8 sessions, 6 h 30 min over 6 days, busiest day 2026-10-30 (2 h 0 min);
+  admin (Alex) has 5 sessions, 4 h 25 min over 5 days, busiest day 2026-10-28 (1 h 30 min). Neither sees the other's.
+  Dates are shown as YYYY-MM-DD and times as 24-hour HH:MM, so the screen reads the same on any day and in any locale.
+- **Date range:** text fields "Start date" and "End date" (placeholder YYYY-MM-DD; they start as 2026-10-27 and
+  2026-11-03, the days the seeded rows cover) and buttons "Apply range" and "Reset range" (disabled while the range is
+  the starting one and nothing is wrong). The labels are not "From" and "To" on purpose: `getByLabel("To")` is a
+  substring match and would find other things. The table changes only when "Apply range" passes; after an error it keeps
+  showing the last good range.
+- Messages under the fields: "Enter a start date.", "Enter an end date.", "Enter the start date as YYYY-MM-DD." (also
+  for "2026-1-5", "27/10/2026" and an impossible date such as 2026-02-30), "Enter the end date as YYYY-MM-DD.", "The end
+  date must be on or after the start date." and "Choose a range of 31 days or fewer." (both ends count: 32 days fails,
+  exactly 31 passes; the last two show under End date). Dates are judged trimmed. Focus goes to the first wrong field,
+  Start date before End date. A good range puts the trimmed dates back in the fields.
+- **Summary** (follows the range): "Total time" (for example "6 h 30 min"; under an hour "45 min"; always spelled `H h M
+  min`, so exactly two hours is "2 h 0 min"), "Days with activity" (days, not sessions) and "Busiest day" (`<date> (<time>)`,
+  the later date wins a tie, "None" when the range is empty).
+- **Time log:** table named "Time log" with columns Date, Started, Ended, Area, Duration, newest first (the first row for
+  the user is 2026-11-03 14:00 to 14:30, Test cases, 30 min); a polite line "Showing N of M sessions from <start> to
+  <end>" (M is that person's sessions). "No time recorded in this range." replaces the table when nothing falls in it.
+  The columns are "Started" and "Ended", not "From" and "To", so no name repeats a field's label.
+- **Nothing is saved**, and every visit starts on the starting range: a full reload, and also a client-side navigation
+  away and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
 ## PR diff to requirement input (workflow)
 
 `.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does
