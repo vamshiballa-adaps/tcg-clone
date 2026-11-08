@@ -348,29 +348,6 @@ people, still a placeholder).
 - **Nothing is saved**, and every visit starts on the starting range: a full reload, and also a client-side navigation
   away and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
 
-## PR diff to requirement input (workflow)
-
-`.github/workflows/pr-requirement-input.yml` and `.github/scripts/build-requirement-input.mjs` record what a change does
-(description, file table and diff; lockfile diffs omitted, capped at 400k chars) as `requirement-input.md` and `.json`.
-They run when:
-
-- **anything lands on `main`** (a merged PR by any method, or a direct push): the push's diff, commit list and, when
-  GitHub can name it, the PR behind it, in `merged/<sha12>/`. This is the record that matters; the requirement is the
-  change that actually landed. `source.merged` is `true` in its JSON.
-- a **PR is opened or updated** (opened, reopened, synchronize, ready_for_review): the PR's own diff in `pr-<n>/`, a
-  draft that may never land (`source.merged` is `false`). Delete the `pull_request:` trigger to record merges only.
-
-Each record is delivered to:
-
-- a workflow artifact (always),
-- the `requirements-inbox` branch (pushes, and same-repo PRs; fork PRs get a read-only token),
-- a POST to the `REQUIREMENTS_WEBHOOK_URL` secret, if set (optional `REQUIREMENTS_WEBHOOK_TOKEN` as a bearer token).
-
-**Status (2026-10-27):** written and tested locally only (script for both event kinds including the PR lookup against
-a mock API, and the branch-publish logic against a local bare repo). It has not yet run on GitHub. The artifact and the
-`requirements-inbox` branch are the safe delivery paths; do not rely on the webhook landing anywhere yet. Details are
-in `README.md`.
-
 ## TCG CI/CD trigger workflow (local TCG, through a tunnel)
 
 `.github/workflows/tcg-cicd-automation-run-1.yml` is TCG's generated GitHub Actions workflow for **run 1** (named "cicd
@@ -410,16 +387,21 @@ carries `run_number: 1`. Its repository secrets are `TCG_CICD_TOKEN_RUN_1` and `
   is itself a PR close, so the workflow runs for it.
 - The local TCG picks the deployed URL to test from the project's last Execute Scripts run or crawl, so that target must
   be a URL the local TCG can reach.
+- **This is the repo's only workflow.** A second one, `pr-requirement-input.yml` with
+  `.github/scripts/build-requirement-input.mjs`, was removed on 2026-11-08. On every PR open or update and every push to
+  `main` it recorded the PR's description and diff as `requirement-input.md` and `.json`, and delivered them to a
+  workflow artifact and to the `requirements-inbox` branch (a bot commit each time). Its webhook step was skipped in
+  every run checked (no `REQUIREMENTS_WEBHOOK_URL` secret), and no TCG endpoint is known to accept such a record, so
+  nothing read it; the trigger workflow above already sends TCG the PR description and the diff itself. Nothing on
+  `main` required its `record` check. The `requirements-inbox` branch is left in place as history and can be deleted.
 
 ## Open questions (close these when answered, then delete them here)
 
-1. **Webhook landing place.** No TCG endpoint is known that accepts an external push as a requirement input. The
-   `aihub` routes seen were document upload, Jira, Confluence, typed text and crawl.
-2. **Private-IP allowlist.** Not verified whether `CRAWL_ALLOWED_HOSTS` lets private addresses through, which decides
+1. **Private-IP allowlist.** Not verified whether `CRAWL_ALLOWED_HOSTS` lets private addresses through, which decides
    whether a localhost or LAN deployment of this app can be crawled and executed against.
 
 ## Keeping this file current
 
-Update this file in the same change whenever the repo's purpose or the TCG integration changes: a new delivery path
-for the PR workflow, an answered open question, a new TCG feature that touches the app, or a change to the build rules.
+Update this file in the same change whenever the repo's purpose or the TCG integration changes: a change to the
+TCG CI/CD trigger workflow, an answered open question, a new TCG feature that touches the app, or a change to the build rules.
 The TCG facts above come from `aihub`'s own docs as read on 2026-10-27; if they disagree with `aihub`, `aihub` wins.
