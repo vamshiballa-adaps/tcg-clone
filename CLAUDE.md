@@ -373,19 +373,20 @@ in `README.md`.
 
 ## TCG CI/CD trigger workflow (local TCG, through a tunnel)
 
-`.github/workflows/tcg-cicd-automation-run-1.yml` is TCG's generated GitHub Actions workflow for **run 1** (named "cicd
-test") of the **local** TCG (its CI/CD page is `/cicd-automation/28`). It fires when a PR merges into `main` (and on
+`.github/workflows/tcg-cicd-automation-run-4.yml` is TCG's generated GitHub Actions workflow for **run 4** (named "tcg
+clone 2") of the **local** TCG (its CI/CD page is `/cicd-automation/33`). It fires when a PR merges into `main` (and on
 manual dispatch) and posts the diff to TCG's trigger endpoint, from a GitHub-hosted runner (`ubuntu-latest`). The body
-carries `run_number: 1`. Its repository secrets are `TCG_CICD_TOKEN_RUN_1` and `TCG_CICD_ENDPOINT_URL`.
+carries `run_number: 4`. Its repository secrets are `TCG_CICD_TOKEN_RUN_4` and `TCG_CICD_ENDPOINT_URL`.
 
-- **One file and one token per run.** TCG's file says it is for run 1 only: a PR merged here becomes a new, incremental
-  run built on run 1, so a later run gets its own file and its own `TCG_CICD_TOKEN_RUN_<n>` secret. Never use one run's
+- **One file and one token per run.** TCG's file says it is for run 4 only: a PR merged here becomes a new, incremental
+  run built on run 4, so a later run gets its own file and its own `TCG_CICD_TOKEN_RUN_<n>` secret. Never use one run's
   file with another run's token. Keep only one such file in `.github/workflows/`: two would both fire on every merge,
-  each against its own run. This file replaced `tcg-cicd-automation-run-40.yml` (run 40 of "testing cicd", CI/CD page
-  `/cicd-automation/20`), so the `TCG_CICD_TOKEN_RUN_40` secret is no longer used and can be deleted in GitHub. Before
-  that came `tcg-cicd-automation.yml`, which read a plain `TCG_CICD_TOKEN` (no run number, local project 16; also unused
-  now), and before that the connection was stage (project 546, `https://adaps.net/cicd-automation/546`), whose values
-  were overwritten and cannot be shown again by GitHub, so they must be copied from TCG to bring stage back.
+  each against its own run. This file replaced `tcg-cicd-automation-run-1.yml` (run 1 of "cicd test", CI/CD page
+  `/cicd-automation/28`), so the `TCG_CICD_TOKEN_RUN_1` secret is no longer used and can be deleted in GitHub. Earlier
+  files, all unused now: `tcg-cicd-automation-run-40.yml` (run 40 of "testing cicd", page `/cicd-automation/20`, secret
+  `TCG_CICD_TOKEN_RUN_40`) and `tcg-cicd-automation.yml`, which read a plain `TCG_CICD_TOKEN` (no run number, local
+  project 16). Before those the connection was stage (project 546, `https://adaps.net/cicd-automation/546`), whose
+  values were overwritten and cannot be shown again by GitHub, so they must be copied from TCG to bring stage back.
 
 - **The endpoint secret must be a public URL, never `http://localhost:3000/...`.** The job runs on GitHub's computer, where
   `localhost` is that computer, not the developer's PC, so curl fails with "Failed to connect to localhost port 3000".
@@ -399,14 +400,14 @@ carries `run_number: 1`. Its repository secrets are `TCG_CICD_TOKEN_RUN_1` and `
   whitespace from both secrets. A secret pasted with a trailing newline or space made curl fail with "(3) URL rejected:
   Malformed input to a URL function" (the value looked right in GitHub's editor; the caret sat on a second line). If TCG
   regenerates its file, re-apply it, and the header comment about the tunnel. An earlier version also changed the project
-  link in the last error message (stage's 546 to the local 16); the run 1 file already names the local TCG. PR #9 had
+  link in the last error message (stage's 546 to the local 16); the run 4 file already names the local TCG. PR #9 had
   moved the job to a self-hosted runner on the PC instead, which `localhost` would work from, but it needs a runner
   registered and online on that PC (the job sat queued with none), plus `jq` and a fork-approval setting; the tunnel
   avoids all of that.
 - A run goes red at "Trigger TCG re-execution" when a secret is missing (a missing token shows up as TCG rejecting the
   request), when TCG answers 403 (the GitHub Actions method is not enabled in that project's CI/CD settings), or when TCG
   cannot be reached. Token and endpoint values live only in Settings, Secrets and variables, Actions; never in the repo or
-  in anything that gets committed. Add `TCG_CICD_TOKEN_RUN_1` before merging the PR that brings this file in: that merge
+  in anything that gets committed. Add `TCG_CICD_TOKEN_RUN_4` before merging the PR that brings this file in: that merge
   is itself a PR close, so the workflow runs for it.
 - The local TCG picks the deployed URL to test from the project's last Execute Scripts run or crawl, so that target must
   be a URL the local TCG can reach.
