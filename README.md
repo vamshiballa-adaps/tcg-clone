@@ -82,6 +82,14 @@ project goes to the top of the list. **Nothing is saved**: a full reload returns
 project's status, the project page and tabs, and Admin-maintained departments are still to do. Code lives in
 `src/features/projects/`.
 
+## Compare Docs (U-28)
+
+`/utilities/compare-docs` (sidebar: **Compare Docs** under My Work, all roles) compares two versions of a document: pick
+a **Document**, a **From version** and a **To version** (v1 to v3) and **Compare versions** lists the passages that were
+added, removed and modified, matched by reference (R1, R2, ...). The documents are seeded and the changes are computed,
+so there is no AI report yet. The two versions must differ and the first must be older. Nothing is saved. Code lives in
+`src/features/compare-docs/`.
+
 ## Help & Feedback (U-39)
 
 `/help` (sidebar: **Help & Feedback**, all roles) is a form with a **Kind** (Problem, Idea, Question), an **Area** (13
