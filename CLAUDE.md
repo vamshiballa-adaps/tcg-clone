@@ -175,6 +175,29 @@ by passage reference, so there is no model behind it.
 - **Nothing is saved**, and every visit starts blank: a full reload, and also a client-side navigation away and back
   (state is reset when the page is hidden, as in `ForgotPasswordForm`).
 
+## My Inbox (U-29 to U-33)
+
+`/inbox` (all roles, sidebar link "My Inbox" under My Work) lists the messages waiting on the signed-in person, and which
+messages exist depends on the role. Code: `src/features/inbox/` (the messages are in `data.ts`). Still to do: Tasks,
+Reviews / Approvals, the top-bar bell and notification preferences (U-44).
+
+- Heading "My Inbox" (level 2). The page waits for the session, so a user never sees the admin's messages for a moment.
+  A radio group "Show" with "All messages" (chosen first) and "Unread only", a button "Mark all as read" (disabled
+  when nothing is unread), a polite line "N unread" (`role=status`, for example "2 unread"), a section "Messages"
+  (level 3) with a line "Showing N of M messages" and the messages as a list.
+- Each message shows its title, its text and "Received <YYYY-MM-DD HH:MM>"; an unread one also has a badge "Unread" and
+  a button "Mark as read" whose accessible name is `Mark as read: <title>`. A read one has neither. There is no delete.
+- **User** (4 messages, 2 unread, newest first): "Run 47 reached Generate Test Cases" (unread), "Report ready: Onboarding
+  happy path" (unread), "Token usage at 62%", "Welcome to TCG".
+- **Admin** (5 messages, 2 unread): "Token request from Uma User" (unread), "Run 48 is executing" (unread), "Token usage
+  at 62%", "Project created: Customer Portal", "Welcome to TCG". The two accounts share only "Token usage at 62%" and
+  "Welcome to TCG", both already read, so a test written with one account's unread messages fails with the other's.
+- Marking one message reads it, drops "N unread" by one and, under "Unread only", removes it from the list. "Mark all as
+  read" reads everything and leaves "0 unread"; under "Unread only" the list is then empty and `No unread messages.`
+  replaces it. After any marking, focus moves to the "Messages" heading.
+- **Nothing is saved**, and every visit starts with the seeded unread messages and "All messages": a full reload, and also
+  a client-side navigation away and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
 ## Help & Feedback (U-39)
 
 `/help` (all roles, sidebar link "Help & Feedback" under My Work) is a form for reporting a problem, an idea or a

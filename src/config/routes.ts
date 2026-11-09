@@ -167,10 +167,11 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/inbox",
     title: "My Inbox",
-    description: "Tasks, Reviews / Approvals and Messages waiting on you. Notifications live in the top-bar bell.",
+    description:
+      "Messages waiting on you, with unread and read, are built; Tasks, Reviews / Approvals and the top-bar bell are still to do. The messages are seeded and nothing is saved.",
     features: ["U-29", "U-30", "U-31", "U-32", "U-33", "U-44"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Work", label: "My Inbox" },
   },
 

@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { InboxScreen } from "@/features/inbox/InboxScreen";
+
+export const metadata: Metadata = { title: "My Inbox" };
 
 export default function Page() {
-  return <PagePlaceholder route="/inbox" />;
+  return <InboxScreen />;
 }
