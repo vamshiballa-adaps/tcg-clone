@@ -36,10 +36,10 @@ export const ROUTES: RouteDef[] = [
     path: "/tcg/runs",
     title: "TCG Runs",
     description:
-      "One table of runs with Mine/Everyone tabs, search, filters, drafts and history. Draft sessions resume at the right stage.",
+      "One table of runs with Mine/Everyone tabs, search and a status filter are built; drafts that resume at the right stage and history are still to do. The runs are seeded and nothing is saved.",
     features: ["U-01", "U-23"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Work", label: "TCG Runs" },
   },
   {
