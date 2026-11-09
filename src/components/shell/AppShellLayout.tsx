@@ -63,7 +63,10 @@ export function AppShellLayout({ children }: { children: React.ReactNode }) {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md">
+      {/* The navbar is as tall as the window and its links are taller than that in a short one. With the default
+          overflow they were drawn below the window's edge and could not be scrolled to, so a click on the last links
+          (Administration, Integrations, CI/CD Automation for an admin) timed out at 1280x720. */}
+      <AppShell.Navbar p="md" style={{ overflowY: "auto" }}>
         <Suspense>
           <SidebarNav role={role} />
         </Suspense>

@@ -55,6 +55,11 @@ below).
 - Signing in is mandatory, and the role comes from the account (`admin@tcg.test` or `user@tcg.test`), so one deployment
   shows both roles. Every test must start with a login. Only with `AUTH_REQUIRED=false` can a signed-out visitor in, with
   the build-time `NEXT_PUBLIC_DEV_ROLE`.
+- **Everything must be clickable in a short window.** The sidebar is as tall as the window, and its links were taller
+  than that at 1280x720 (the default headless size): the last links, Administration, Integrations and CI/CD Automation
+  for an admin, were drawn below the edge and a click timed out ("element is outside of the viewport"). The navbar now
+  scrolls (`overflow-y: auto`). After adding a link or a page, check it with `locator.click()` at 1280x720 and
+  1024x600, not only in a tall window.
 
 ## Home screen startup sequence (deliberate)
 
@@ -347,6 +352,31 @@ people, still a placeholder).
   The columns are "Started" and "Ended", not "From" and "To", so no name repeats a field's label.
 - **Nothing is saved**, and every visit starts on the starting range: a full reload, and also a client-side navigation
   away and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
+## CI/CD Automation page (A-20, A-21)
+
+`/cicd-automation` (sidebar link "CI/CD Automation" under My Organization) is **Admin only**: a user gets the "Access
+denied" page at that same URL (status 200, see "Sign in"). Code: `src/features/cicd/` (the history is in `data.ts`).
+Still to do: connecting GitHub Actions, Jenkins or webhooks, pausing, disconnecting and the fallback setting. It is a page
+about the loop this repo rehearses, but it is not connected to the workflow below: its rows are seeded text.
+
+- Heading "CI/CD Automation" (level 2); sections (level 3) "Trigger settings", "On demand" and "Trigger history".
+- "Trigger settings" is a read-only term/definition list: Trigger type "Pull request merged", Branch "main", Method
+  "GitHub Actions", Selection "Relevant test cases, the full suite when unsure".
+- "On demand": a button "Run full suite". Clicking it adds run 6 at the top of the history (source "Full suite (on
+  demand)", trigger "Manual dispatch", "18 of 18", "Queued", "Just now"), shows a status titled "Full suite queued": "Run
+  6 was queued for all 18 test cases." (button "Dismiss"), disables the button and shows "A full suite is already
+  queued." The button stays disabled until the page is reloaded.
+- "Trigger history": a select "Filter by result" (All results, Passed, Failed, Queued), a plain line "Showing N of M
+  triggers" and a table named "Trigger history" with columns Run, Source, Trigger, Test cases selected, Result and When,
+  newest first. The five seeded rows (Run: source, trigger, selected, result, when): 5: PR #24 Switch the trigger workflow
+  to run 4, Pull request merged, 0 of 0, Queued, 2026-11-08. 4: PR #21 Compare Docs, Pull request merged, 6 of 18,
+  Passed, 2026-11-08. 3: PR #20 Guide, Pull request merged, 5 of 18, Passed, 2026-11-06. 2: PR #19 My TCG Time, Pull
+  request merged, 4 of 18, Failed, 2026-11-05. 1: Full suite (on demand), Manual dispatch, 18 of 18, Passed, 2026-11-04.
+  Passed is 3 rows, Failed 1 and Queued 1 (2 after "Run full suite").
+- **Nothing is saved**, and every visit starts with the five rows, every result, no status and an enabled button: a full
+  reload, and also a client-side navigation away and back (state is reset when the page is hidden, as in
+  `ForgotPasswordForm`).
 
 ## TCG CI/CD trigger workflow (local TCG, through a tunnel)
 

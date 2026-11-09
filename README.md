@@ -142,6 +142,15 @@ time, days with activity, busiest day). It is always your own time, for both rol
 range is at most 31 days) and **Reset range** goes back to the seeded range. The sessions are seeded and **nothing is
 saved**: every visit starts on the default range. Code lives in `src/features/my-time/`.
 
+## CI/CD Automation (A-20, A-21)
+
+`/cicd-automation` (sidebar: **CI/CD Automation** under My Organization) is **Admin only**: a user who opens it gets an
+"Access denied" page at the same address. It shows the read-only **Trigger settings** (pull request merged, branch
+`main`, GitHub Actions, relevant test cases or the full suite when unsure), an **On demand** button **Run full suite**
+that queues a run of all 18 test cases, and a **Trigger history** of five seeded runs with a **Filter by result** select
+(Passed, Failed, Queued). **Nothing is saved**: a full reload returns to the five seeded runs. Connecting a method,
+pausing and the fallback setting are still to do. Code lives in `src/features/cicd/`.
+
 ## Not included yet (by design)
 
 Real auth/session (a user store, signup and password flows, the BFF's session cookie; sign-in above is a mock), real

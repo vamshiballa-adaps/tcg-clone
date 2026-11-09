@@ -230,10 +230,10 @@ export const ROUTES: RouteDef[] = [
     path: "/cicd-automation",
     title: "CI/CD Automation",
     description:
-      "Re-run a project's generated Playwright suite on merge: GitHub Actions, Jenkins, API & webhooks; pause, disconnect, fallback.",
+      "Re-run a project's generated Playwright suite on merge. The trigger settings, an on-demand Run full suite and the trigger history are built; connecting GitHub Actions, Jenkins or webhooks, pausing and the fallback setting are still to do. The history is seeded and nothing is saved.",
     features: ["A-20", "A-21"],
     roles: "admin",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Organization", label: "CI/CD Automation" },
   },
 
