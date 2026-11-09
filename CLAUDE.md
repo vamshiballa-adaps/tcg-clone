@@ -221,6 +221,43 @@ real top-ups and a history (Token Usage, U-35, is a separate screen).
 - Statuses have a "Dismiss" button. **Nothing is saved**: a full reload returns to 100,000 / 62,400 / 37,600. A
   client-side navigation away and back keeps an admin's new allowance but drops last visit's status.
 
+## Inputs Registry (U-25, U-27)
+
+`/inputs` (all roles, sidebar link "Inputs Registry" under My Work, same for both roles) lists the requirements inputs.
+Code: `src/features/inputs/` (the inputs and the rules are in `data.ts`). Still to do: versioning, preview, delete and
+filing by real projects; the five project names are the seeded ones from `src/features/projects/data.ts`.
+
+- Heading "Inputs Registry" (level 2); button "Add input"; box "Search inputs" (matches name, project or source, ignoring
+  case and surrounding spaces); select "Filter by type" (All types, Document, Jira, URL, Typed text); a plain line
+  "Showing N of M inputs"; a table named "Inputs" with columns Name, Type, Project, Source, Added by, Version and Added,
+  newest first.
+- Six seeded rows (Name: type, project, source, added by, version): Checkout pages crawl: URL, Payments Gateway,
+  https://shop.example.com/checkout, Alex Admin, v1. Portal login story: Jira, Customer Portal, CPT-31, Uma User, v2.
+  Onboarding screens spec: Document, Mobile Onboarding, onboarding-spec.pdf, Uma User, v3. Refund rules: Typed text,
+  Payments Gateway, "Refunds are allowed within 14 days.", Alex Admin, v1. Payments BRD: Document, Payments Gateway,
+  payments-brd-v3.docx, Alex Admin, v3. Invoice export notes: Document, Legacy Billing, invoice-export.txt, Sam Rivera,
+  v1. Types: three Documents, one each of the others.
+- "Add input" opens a dialog named "Add input": "Input name", "Input type" (a prompt "Select a type", then Document,
+  Jira, URL, Typed text), "Project" (a prompt "Select a project", then the five projects), "Source" (its hint changes
+  with the type, "Depends on the input type." before one is chosen) and buttons "Save input" and "Cancel". The labels do
+  not repeat each other or the page's "Search inputs" and "Filter by type".
+- Messages under the fields: "Enter an input name.", "Input name must be 60 characters or fewer." (61+ fails, exactly 60
+  passes), "An input with this name already exists." (trimmed, case-insensitive, so "payments brd" clashes), "Choose an
+  input type.", "Choose a project.". **Source** is judged trimmed and its rule depends on the type: empty is "Enter a
+  source." for every type (and the only Source message before a type is chosen); Document needs a file name with no
+  spaces ending in .pdf, .docx or .txt (any case), otherwise "Enter a file name ending in .pdf, .docx or .txt."; Jira
+  needs an upper-case key such as PAY-123, otherwise "Enter a Jira issue key such as PAY-123."; URL needs http:// or
+  https:// and a host with a dot, otherwise "Enter a URL starting with http:// or https://."; Typed text allows up to 200
+  characters ("Typed text must be 200 characters or fewer.", 201 fails, exactly 200 passes). Focus goes to the first
+  wrong field, in the order Input name, Input type, Project, Source.
+- A valid form closes the dialog, puts the input first (added by the signed-in person, version "v1", "Just now") and shows
+  a status "Input added": `"<name>" was added to the list.` (button "Dismiss"). "Cancel" closes it and adds nothing.
+- Nothing left: `No inputs match "xyz".` when a search finds nothing (it wins over the filter), otherwise `No inputs of
+  type "Jira".` when the filter finds nothing.
+- **Nothing is saved**, and every visit starts with the six rows, an empty search, every type and no dialog or status: a
+  full reload, and also a client-side navigation away and back (state is reset when the page is hidden, as in
+  `ForgotPasswordForm`).
+
 ## Token Usage (U-35)
 
 `/insights/token-usage` (all roles, sidebar link "Token Usage" under My Insights) is a filterable log of where the tokens
