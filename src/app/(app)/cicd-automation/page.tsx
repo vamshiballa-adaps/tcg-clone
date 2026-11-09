@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { CicdScreen } from "@/features/cicd/CicdScreen";
+
+export const metadata: Metadata = { title: "CI/CD Automation" };
 
 export default function Page() {
-  return <PagePlaceholder route="/cicd-automation" />;
+  return <CicdScreen />;
 }
