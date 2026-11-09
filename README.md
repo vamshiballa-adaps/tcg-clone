@@ -100,6 +100,14 @@ added, removed and modified, matched by reference (R1, R2, ...). The documents a
 so there is no AI report yet. The two versions must differ and the first must be older. Nothing is saved. Code lives in
 `src/features/compare-docs/`.
 
+## My Inbox (U-29 to U-33)
+
+`/inbox` (sidebar: **My Inbox** under My Work, all roles) lists the messages waiting on you: four for the user, five
+for the admin (the admin gets a token request, a running run and a new project that the user does not). **Show** picks
+**All messages** or **Unread only**, each unread message has a **Mark as read** button, and **Mark all as read** clears
+the rest. There is no delete. **Nothing is saved**: a full reload makes every message unread again. Tasks, Reviews /
+Approvals and the top-bar bell are still to do. Code lives in `src/features/inbox/`.
+
 ## Help & Feedback (U-39)
 
 `/help` (sidebar: **Help & Feedback**, all roles) is a form with a **Kind** (Problem, Idea, Question), an **Area** (13
