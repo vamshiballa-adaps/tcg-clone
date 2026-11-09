@@ -82,6 +82,16 @@ project goes to the top of the list. **Nothing is saved**: a full reload returns
 project's status, the project page and tabs, and Admin-maintained departments are still to do. Code lives in
 `src/features/projects/`.
 
+## TCG Runs (U-01)
+
+`/tcg/runs` (sidebar: **TCG Runs** under My Work, all roles) lists eight seeded runs in one table with **Mine** and
+**Everyone** tabs, a **Search runs** box (run name, project or creator) and a **Filter by status** select (Draft,
+Running, Completed, Failed). **Mine** is the runs the signed-in person created, so the admin and the user see different
+rows there; **Everyone** shows all eight. Each run name links to its report page (still a placeholder) and **Start a
+run** links to the start page (also a placeholder). **Nothing is saved**: every visit starts on Mine with no search and
+every status. Drafts that resume at the right stage and the run history are still to do. Code lives in
+`src/features/runs/`.
+
 ## Compare Docs (U-28)
 
 `/utilities/compare-docs` (sidebar: **Compare Docs** under My Work, all roles) compares two versions of a document: pick

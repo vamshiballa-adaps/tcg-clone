@@ -1,5 +1,8 @@
-import { PagePlaceholder } from "@/components/PagePlaceholder";
+import type { Metadata } from "next";
+import { RunsScreen } from "@/features/runs/RunsScreen";
+
+export const metadata: Metadata = { title: "TCG Runs" };
 
 export default function Page() {
-  return <PagePlaceholder route="/tcg/runs" />;
+  return <RunsScreen />;
 }

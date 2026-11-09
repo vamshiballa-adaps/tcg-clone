@@ -149,6 +149,37 @@ departments (A-26, fixed in `src/config/departments.ts` for now). Code: `src/fea
 - **Nothing is saved.** The list lives in the page, so a full reload goes back to the five seeded rows; a client-side
   navigation away and back keeps what was added.
 
+## TCG Runs (U-01)
+
+`/tcg/runs` (all roles, sidebar link "TCG Runs" under My Work) lists the runs. It is a page where the **data** differs by
+account: the "Mine" tab is the runs the signed-in person created. Code: `src/features/runs/` (the runs are in `data.ts`).
+Still to do: drafts that resume at the right stage, the run history and a real run list.
+
+- Heading "TCG Runs" (level 2); a link "Start a run" (to `/tcg/runs/start`, still a placeholder). The page waits for the
+  session, so the tabs are not drawn from the wrong person's list for a moment. A tab list named "Run scope" with tabs
+  "Mine" (selected first) and "Everyone". Only the open tab's content is in the page.
+- Each tab has a box "Search runs" (matches run name, project or creator, ignoring case and surrounding spaces), a select
+  "Filter by status" (All statuses, Draft, Running, Completed, Failed), a polite line "Showing N of M runs" (M is the
+  runs under that tab, N what is left after the search and the filter) and a table named "Runs" with columns Run,
+  Project, Created by, Stage, Status, Started and Test cases, newest first.
+- The eight runs (Run: Project, creator, stage, status, started, test cases): Checkout flow, cycle 4: Payments Gateway,
+  Alex Admin, Execute Scripts, Running, 2026-11-08, 24. Portal login hardening: Customer Portal, Uma User, Generate Test
+  Cases, Running, 2026-11-07, 12. Onboarding happy path: Mobile Onboarding, Uma User, Reports & Exports, Completed,
+  2026-11-05, 18. Refund edge cases: Payments Gateway, Alex Admin, Requirements Analysis, Draft, 2026-11-04, 0. Invoice
+  export: Legacy Billing, Sam Rivera, Scenario Analyzer, Failed, 2026-10-29, 0. Profile page review: Customer Portal,
+  Uma User, Reports & Exports, Completed, 2026-10-27, 21. Wallet payments: Payments Gateway, Alex Admin, Reports &
+  Exports, Completed, 2026-10-22, 30. Audit evidence sweep: 2024 Audit Prep, Alex Admin, Requirements Input, Draft,
+  2026-10-12, 0.
+- **Mine** is 4 runs for the admin (Checkout flow, cycle 4; Refund edge cases; Wallet payments; Audit evidence sweep) and
+  3 for the user (Portal login hardening; Onboarding happy path; Profile page review). **Everyone** is all 8 for both.
+  Sam Rivera has no account to sign in with, so no one sees "Mine" as Sam.
+- Each run name is a link to `/tcg/runs/<id>` (48, 47, ... 41), a placeholder named "Reports & Exports".
+- Nothing left: `No runs match "xyz".` when a search finds nothing (it wins over the filter), otherwise `No failed runs.`
+  (the status in lower case) when the filter finds nothing, for example Mine as the admin with Failed. The search and
+  the filter stay when you switch tabs.
+- **Nothing is saved**, and every visit starts on Mine with an empty search and every status: a full reload, and also a
+  client-side navigation away and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
 ## Compare Docs (U-28)
 
 `/utilities/compare-docs` (all roles, sidebar link "Compare Docs" under My Work, same for both roles) shows what changed
