@@ -113,8 +113,8 @@ Behaviour a test can rely on:
   password", field "Email", button "Send reset link", link "Back to sign in". Same email messages as sign-in ("Enter your
   email address.", "Enter a valid email address."). Any well-formed address, known, unknown or locked, gets the same
   status titled "Reset link sent": "If an account exists for <email>, a link to reset your password is on its way."
-  No mail is sent, and `/reset-password` is still a placeholder. The form is blank on every visit, including a return by
-  client-side navigation.
+  No mail is sent, so there is no real link: the fixed addresses that open `/reset-password` are under "Reset password"
+  below. The form is blank on every visit, including a return by client-side navigation.
 - `AUTH_REQUIRED=false` (a runtime setting on the host, no rebuild) reverts to an open app for signed-out visitors, who
   get the build-time `NEXT_PUBLIC_DEV_ROLE`. Only the exact value `false` does that; unset or anything else keeps
   sign-in mandatory.
@@ -244,6 +244,32 @@ went. Code: `src/features/token-usage/` (the rows are in `data.ts`). Still to do
   1,000,000, so the screen reads the same on any day and in any locale.
 - **Nothing is saved**, and the filters start unfiltered on every visit: a full reload, and also a client-side
   navigation away and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
+## Reset password (S-01)
+
+`/reset-password` (open signed out like the other auth screens) sets a new password from a reset link. The one place a
+test chooses the state by the **address**, not by typing. Code: `src/components/auth/ResetPasswordForm.tsx` and
+`src/lib/auth/reset-link.ts`. Still to do: a real token, a mail service and saving the password; `/set-password` is
+still a placeholder.
+
+- The link is judged by its `token` query value alone, compared exactly: `/reset-password?token=valid-token` opens the
+  form, `?token=expired-token` shows the expired state, and anything else is not valid: no token, an empty one, another
+  value, or the right one in another case (`Valid-Token`).
+- Always: heading "Reset password" (level 1) and a link "Back to sign in".
+- **Valid link:** the line "Choose a new password for your account.", fields "New password" and "Confirm password" (the
+  second is not "Confirm new password" on purpose: `getByLabel("New password")` is a substring match and would find two
+  fields) and a button "Save new password". Messages: "Enter a new password.", "New password must be at least 8
+  characters." (7 fails, exactly 8 passes), "Confirm your new password.", "Passwords do not match.". Passwords are
+  compared exactly: not trimmed, case-sensitive, so 8 spaces count as 8 characters. Focus goes to the first wrong field,
+  New password before Confirm password. A good form is replaced by a status titled "Password reset": "Your password was
+  reset." with no form left.
+- **Expired link:** an alert titled "Link expired": "This link is older than the time allowed." and a link "Request a new
+  link" (to `/forgot-password`). No form.
+- **Invalid link:** an alert titled "Link not valid": "This link can't be used to reset a password." and the same link
+  "Request a new link". No form.
+- **Nothing is saved**, and signing in still uses the built-in passwords, so a test that resets a password and then signs
+  in with it fails by design. Every visit starts blank, including a return by client-side navigation (state is reset when
+  the page is hidden, as in `ForgotPasswordForm`).
 
 ## Get Started (U-38)
 
