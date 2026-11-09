@@ -195,6 +195,28 @@ question. Code: `src/features/help/`.
   navigation always shows a blank form (state is reset when the page is hidden, as in `ForgotPasswordForm`), unlike
   Projects, which keeps what was added.
 
+## Team Activity (A-09)
+
+`/insights/team-activity` (all roles, sidebar link "Team Activity" under My Insights) lists the people on the team, and
+is the app's one page where the **controls** differ by role, not only the data. Code: `src/features/team-activity/`
+(the people and their activity are in `data.ts`). Still to do: real activity, and a range or filter.
+
+- Heading "Team Activity" (level 2); section "People" (level 3). The page waits for the session, so a user never sees
+  the admin's buttons for a moment.
+- Table named "Team members", the same for both roles, with columns Person, Role, Runs this month and Last active and
+  three rows in this order: Alex Admin (Workspace admin, 6, 2026-11-03), Sam Rivera (Workspace user, 3, 2026-10-29), Uma
+  User (Workspace user, 9, 2026-11-03). The role reads "Workspace admin" or "Workspace user", so it never repeats the
+  header's role badge. A polite line "Showing 3 people".
+- **Admin:** a line "Select a person to open their activity." and each name is a **button** (`aria-expanded`, closed
+  at first). Opening one shows a section "Activity for <name>" (level 3, focus moves to it) with a table named "Recent
+  activity" (columns Date, Activity; Uma has 4 events, newest 2026-11-03 "Generated test cases for Customer Portal";
+  Sam 3; Alex 4) and a button "Close details" (it also returns focus to that person's button). Opening another person
+  replaces the section; clicking the open person closes it. Every person is openable, the admin's own row included.
+- **User:** a line "Only a workspace admin can open a person's activity." and the names are plain text: there are no
+  buttons in the page content, nothing opens, and there is no "Close details". Same rows, different accessibility tree.
+- **Nothing is saved**, and every visit starts with nobody open: a full reload, and also a client-side navigation away
+  and back (state is reset when the page is hidden, as in `ForgotPasswordForm`).
+
 ## My Plan (U-40, A-23)
 
 `/my-plan` (all roles, sidebar link "My Plan" under My Insights) shows the plan and a token meter, and the one place a
