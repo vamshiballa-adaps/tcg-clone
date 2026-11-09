@@ -64,7 +64,8 @@ header then shows the person's name, role and **Sign out**; the sidebar follows 
 
 - **Forgot password** (`/forgot-password`, open signed out): enter an email, press **Send reset link**. Any well-formed
   address gets the same "Reset link sent" confirmation, whether or not an account exists, so the screen never reveals
-  which emails are registered. No mail is sent (no mail service yet) and `/reset-password` is still a placeholder.
+  which emails are registered. No mail is sent (no mail service yet), so there is no real link: see **Reset password**
+  below for the fixed addresses that open `/reset-password`.
 - **Session:** a signed, httpOnly cookie (`tcg_session`, 8 hours). The UI asks `/api/auth/session`; pages and layouts
   never read the cookie, so they stay prerendered.
 - **Gating (`src/proxy.ts`):** a signed-in role too low for a page sees "Access denied" at that URL (status 200); a
@@ -110,6 +111,15 @@ seeded numbers. Other plan content is still to do. Code lives in `src/features/p
 filter by **Period**, **Operation** and, for an admin, **Person**. An **admin** sees all 12 entries (62,400 tokens, the
 same as My Plan); a **user** sees only their own 5 (29,100). The rows are fixed, and a top-up on My Plan does not show
 up here. Nothing is saved. The top-up history is still to do. Code lives in `src/features/token-usage/`.
+
+## Reset password (S-01)
+
+`/reset-password` (open signed out, linked from the invalid and expired states as **Request a new link**) judges a link
+by its `?token=` alone, since there is no mail service or token store. `/reset-password?token=valid-token` opens the
+form (**New password**, **Confirm password**, **Save new password**), `?token=expired-token` says the link expired, and
+no token or any other value says the link is not valid. The new password needs at least 8 characters and must match its
+confirmation. A good form shows "Password reset", but **nothing is saved**: signing in still uses the built-in passwords.
+Code lives in `src/components/auth/ResetPasswordForm.tsx` and `src/lib/auth/reset-link.ts`.
 
 ## Get Started (U-38)
 

@@ -320,10 +320,11 @@ export const ROUTES: RouteDef[] = [
   {
     path: "/reset-password",
     title: "Reset password",
-    description: "Set a new password from a reset link.",
+    description:
+      "Set a new password from a reset link. Built against fixed tokens (?token=valid-token opens the form, expired-token says the link expired, anything else is not valid); the new password is checked and confirmed but not saved.",
     features: ["S-01"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
   },
   {
     path: "/set-password",
