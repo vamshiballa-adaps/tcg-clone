@@ -136,10 +136,10 @@ export const ROUTES: RouteDef[] = [
     path: "/inputs",
     title: "Inputs Registry",
     description:
-      "Every requirements input in the workspace: add, file under projects, version, preview, delete.",
+      "Every requirements input in the workspace, with search, a type filter and Add input (the Source rule depends on the type), is built; versioning, preview and delete are still to do. Inputs added in the browser are not saved.",
     features: ["U-25", "U-27"],
     roles: "all",
-    status: "todo",
+    status: "in-progress",
     nav: { group: "My Work", label: "Inputs Registry" },
   },
   {

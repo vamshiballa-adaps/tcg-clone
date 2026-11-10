@@ -129,6 +129,15 @@ and nothing is saved. Code lives in `src/features/team-activity/`.
 a **user** gets **Request tokens** (amount and reason; nothing moves). **Nothing is saved**: a full reload returns to the
 seeded numbers. Other plan content is still to do. Code lives in `src/features/plan/`.
 
+## Inputs Registry (U-25, U-27)
+
+`/inputs` (sidebar: **Inputs Registry** under My Work, all roles) lists six seeded requirements inputs with a **Search
+inputs** box (name, project or source), a **Filter by type** select (Document, Jira, URL, Typed text) and an **Add
+input** dialog: input name (up to 60 characters, unique ignoring case), input type, project and a source whose rule
+depends on the type (a file name ending .pdf, .docx or .txt; a Jira key like PAY-123; an http(s) address; or up to 200
+characters of text). An added input goes to the top. **Nothing is saved**: a full reload returns to the seeded list.
+Versioning, preview and delete are still to do. Code lives in `src/features/inputs/`.
+
 ## Token Usage (U-35)
 
 `/insights/token-usage` (sidebar: **Token Usage** under My Insights, all roles) shows a summary and a usage log you can
